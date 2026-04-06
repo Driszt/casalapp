@@ -7,12 +7,28 @@ import { supabase } from './supabase'
 function Root() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [confirmed, setConfirmed] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    // Handle email confirmation redirect
+    const hash = window.location.hash
+    if (hash && hash.includes('access_token')) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          setUser(session.user)
+          setConfirmed(true)
+          // Clean URL
+          window.history.replaceState(null, '', window.location.pathname)
+        }
+        setLoading(false)
+      })
+    } else {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null)
+        setLoading(false)
+      })
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
@@ -20,8 +36,21 @@ function Root() {
   }, [])
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0a0a, #2d1b2e, #0d1a2d)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0a882', fontFamily: 'Georgia, serif', fontSize: 20 }}>
-      ❤️
+    <div style={{ minHeight: '100vh', background: '#f7f7f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontFamily: 'Georgia, serif', fontSize: 16 }}>
+      ♥
+    </div>
+  )
+
+  if (confirmed && user) return (
+    <div style={{ minHeight: '100vh', background: '#f7f7f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+        <h2 style={{ fontSize: 24, fontWeight: 400, color: '#1a1a1a', margin: '0 0 8px' }}>Email confirmado!</h2>
+        <p style={{ color: '#888', margin: '0 0 24px' }}>A tua conta está ativa.</p>
+        <button onClick={() => setConfirmed(false)} style={{ background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 28px', fontSize: 14, fontFamily: 'inherit', cursor: 'pointer' }}>
+          Entrar na app →
+        </button>
+      </div>
     </div>
   )
 
