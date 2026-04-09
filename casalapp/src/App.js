@@ -100,30 +100,10 @@ const DEFAULT_PERMS = {
   casal:        {addEvent:true,editEvent:true,deleteEvent:true,addTask:true,editTask:true,deleteTask:true,addNote:true,chat:true},
   colaborativo: {addEvent:true,editEvent:true,deleteEvent:false,addTask:true,editTask:true,deleteTask:false,addNote:true,chat:true},
 };
-const INIT_EVENTS = {
-  casal:[
-    {id:1,title:'Aniversário dela',   date:'2026-04-06',type:'birthday',desc:'Não esquecer o presente!'},
-    {id:2,title:'Jantar romântico',   date:'2026-04-14',type:'date',    desc:'Restaurante às 20h'},
-    {id:3,title:'Consulta médica',    date:'2026-04-20',type:'medical', desc:'Clínica central, 10h'},
-    {id:4,title:'Fim de semana fora', date:'2026-04-25',type:'holiday', desc:''},
-    {id:5,title:'Aniversário casamento',date:'2026-06-15',type:'birthday',desc:''},
-    {id:6,title:'Férias de verão',    date:'2026-07-10',type:'holiday', desc:'Algarve'},
-  ],
-  cozinha:[{id:10,title:'Jantar de família',date:'2026-04-12',type:'date',desc:''}],
-  oracao: [{id:20,title:'Encontro semanal',date:'2026-04-10',type:'other',desc:''}],
-};
-const INIT_TASKS = {
-  casal:[
-    {id:1,text:'Comprar mantimentos',col:'A fazer',priority:'alta',done:false},
-    {id:2,text:'Pagar renda',col:'A fazer',priority:'alta',done:false},
-    {id:3,text:'Comprar presente aniversário',col:'A fazer',priority:'média',done:false},
-    {id:4,text:'Marcar consulta médica',col:'Em progresso',priority:'média',done:false},
-    {id:5,text:'Planear férias',col:'Em progresso',priority:'baixa',done:false},
-    {id:6,text:'Reservar jantar aniversário',col:'Concluído',priority:'alta',done:true},
-  ],
-  cozinha:[{id:10,text:'Comprar ingredientes',col:'A fazer',priority:'média',done:false}],
-  oracao:[{id:20,text:'Preparar leitura da semana',col:'A fazer',priority:'baixa',done:false}],
-};
+const INIT_EVENTS = { casal:[], cozinha:[], oracao:[] };
+
+const INIT_TASKS = { casal:[], cozinha:[], oracao:[] };
+
 const INIT_MSGS = { casal:[], cozinha:[], oracao:[] };
 
 const INIT_WINS = {
@@ -141,15 +121,7 @@ const DK = {
   accentMid:"#6a5a40", success:"#5a9a5a", danger:"#c06060", warning:"#c09040",
 };
 
-const INIT_NOTES = {
-  casal:[
-    {id:1,title:'Lista de compras',text:'__shopping__',items:[{id:11,text:'Leite',done:false},{id:12,text:'Pão',done:false},{id:13,text:'Fruta',done:true}],private:false,pinned:true},
-    {id:2,title:'Ideias férias',   text:'Algarve em julho\nMadeira em outubro',items:[],private:false,pinned:false},
-    {id:3,title:'Nota pessoal',    text:'Surpresa do aniversário',items:[],private:true,pinned:false},
-  ],
-  cozinha:[{id:10,title:'Receita favorita',text:'Bacalhau à brás',items:[],private:false,pinned:false}],
-  oracao: [],
-};
+const INIT_NOTES = { casal:[], cozinha:[], oracao:[] };
 
 function ArchiveInner({ events, tasks, T }) {
   const [activeTab,setAT] = useState('tasks');
@@ -1837,16 +1809,20 @@ export default function App({ user, onLogout }) {
       }
 
       const { data: evts } = await supabase.from('events').select('*').eq('user_id',user.id);
-      if(evts?.length){ const g={}; evts.forEach(e=>{ if(!g[e.group_id])g[e.group_id]=[]; g[e.group_id].push(e); }); setEvents(ev=>({...ev,...g})); }
+      if(evts?.length){ const g={}; evts.forEach(e=>{ if(!g[e.group_id])g[e.group_id]=[]; g[e.group_id].push(e.data||e); }); setEvents(g); }
+      else setEvents({casal:[],cozinha:[],oracao:[]});
 
       const { data: tks } = await supabase.from('tasks').select('*').eq('user_id',user.id);
-      if(tks?.length){ const g={}; tks.forEach(t=>{ if(!g[t.group_id])g[t.group_id]=[]; g[t.group_id].push(t); }); setTasks(tk=>({...tk,...g})); }
+      if(tks?.length){ const g={}; tks.forEach(t=>{ if(!g[t.group_id])g[t.group_id]=[]; g[t.group_id].push(t.data||t); }); setTasks(g); }
+      else setTasks({casal:[],cozinha:[],oracao:[]});
 
       const { data: ms } = await supabase.from('messages').select('*').order('created_at',{ascending:true}).limit(200);
-      if(ms?.length){ const g={}; ms.forEach(m=>{ if(!g[m.group_id])g[m.group_id]=[]; g[m.group_id].push({...m,from:m.user_id===user.id?'me':m.sender_name||'outro',time:new Date(m.created_at).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),_date:m.created_at.split('T')[0]}); }); setMsgs(mg=>({...mg,...g})); }
+      if(ms?.length){ const g={}; ms.forEach(m=>{ if(!g[m.group_id])g[m.group_id]=[]; const d=m.data||m; g[m.group_id].push({...d,from:m.user_id===user.id?'me':m.sender_name||'outro',time:new Date(m.created_at).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),_date:m.created_at.split('T')[0]}); }); setMsgs(g); }
+      else setMsgs({casal:[],cozinha:[],oracao:[]});
 
       const { data: ns } = await supabase.from('notes').select('*').eq('user_id',user.id);
-      if(ns?.length){ const g={}; ns.forEach(n=>{ if(!g[n.group_id])g[n.group_id]=[]; g[n.group_id].push(n); }); setNotes(nt=>({...nt,...g})); }
+      if(ns?.length){ const g={}; ns.forEach(n=>{ if(!g[n.group_id])g[n.group_id]=[]; g[n.group_id].push(n.data||n); }); setNotes(g); }
+      else setNotes({casal:[],cozinha:[],oracao:[]});
 
       setDbReady(true);
     };
@@ -1860,7 +1836,7 @@ export default function App({ user, onLogout }) {
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},payload=>{
         const m=payload.new;
         if(m.user_id===user.id) return; // already added optimistically
-        const msg={id:m.id,from:m.sender_name||'outro',text:m.text,time:new Date(m.created_at).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),_date:m.created_at.split('T')[0],pinned:false};
+        const d=m.data||m; const msg={...d,id:m.id,from:m.sender_name||'outro',time:new Date(m.created_at).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),_date:m.created_at.split('T')[0],pinned:false};
         setMsgs(ms=>({...ms,[m.group_id]:[...(ms[m.group_id]||[]),msg]}));
       }).subscribe();
     return ()=>supabase.removeChannel(ch);
@@ -1902,11 +1878,11 @@ export default function App({ user, onLogout }) {
   };
 
   // ── MUTATIONS (with Supabase sync) ────────────────────────────────────────
-  const addEvent    = ev=>{ if(!hasPerm('addEvent')) return; if(isCasalGrp()){proposeAction('event',ev,'add');return;} setEvents(e=>({...e,[g]:[...(e[g]||[]).filter(x=>x.id!==ev.id),ev]})); supabase.from('events').upsert({...ev,user_id:user.id,group_id:g}).then(()=>{}); };
-  const editEvent   = ev=>{ if(!hasPerm('editEvent')) return; if(isCasalGrp()){proposeAction('event',ev,'edit');return;} setEvents(e=>({...e,[g]:(e[g]||[]).map(x=>x.id===ev.id?ev:x)})); supabase.from('events').update(ev).eq('id',ev.id).then(()=>{}); };
+  const addEvent    = ev=>{ if(!hasPerm('addEvent')) return; if(isCasalGrp()){proposeAction('event',ev,'add');return;} setEvents(e=>({...e,[g]:[...(e[g]||[]).filter(x=>x.id!==ev.id),ev]})); supabase.from('events').upsert({id:ev.id,user_id:user.id,group_id:g,data:ev}).then(()=>{}); };
+  const editEvent   = ev=>{ if(!hasPerm('editEvent')) return; if(isCasalGrp()){proposeAction('event',ev,'edit');return;} setEvents(e=>({...e,[g]:(e[g]||[]).map(x=>x.id===ev.id?ev:x)})); supabase.from('events').update({data:ev}).eq('id',ev.id).then(()=>{}); };
   const deleteEvent = id=>{ if(!hasPerm('deleteEvent')) return; if(isCasalGrp()){proposeAction('event',{id},'delete');return;} setEvents(e=>({...e,[g]:(e[g]||[]).filter(x=>x.id!==id)})); supabase.from('events').delete().eq('id',id).then(()=>{}); };
-  const addTask     = t =>{ if(!hasPerm('addTask')) return; if(isCasalGrp()&&!t.priv){proposeAction('task',t,'add');return;} setTasks(e=>({...e,[g]:[...(e[g]||[]),t]})); supabase.from('tasks').insert({...t,user_id:user.id,group_id:g}).then(()=>{}); };
-  const editTask    = t =>{ setTasks(e=>({...e,[g]:(e[g]||[]).map(x=>x.id===t.id?t:x)})); supabase.from('tasks').update(t).eq('id',t.id).then(()=>{}); };
+  const addTask     = t =>{ if(!hasPerm('addTask')) return; if(isCasalGrp()&&!t.priv){proposeAction('task',t,'add');return;} setTasks(e=>({...e,[g]:[...(e[g]||[]),t]})); supabase.from('tasks').insert({id:t.id,user_id:user.id,group_id:g,data:t}).then(()=>{}); };
+  const editTask    = t =>{ setTasks(e=>({...e,[g]:(e[g]||[]).map(x=>x.id===t.id?t:x)})); supabase.from('tasks').update({data:t}).eq('id',t.id).then(()=>{}); };
   const deleteTask  = id=>{ setTasks(e=>({...e,[g]:(e[g]||[]).filter(x=>x.id!==id)})); supabase.from('tasks').delete().eq('id',id).then(()=>{}); };
   const moveTask    = (id,col)=>setTasks(e=>{
     const task=(e[g]||[]).find(t=>t.id===id);
@@ -1927,12 +1903,12 @@ export default function App({ user, onLogout }) {
     const _date=now.toISOString().split('T')[0];
     const msg={id:genId(),from:'me',text,time,_date,pinned:false,replyTo:replyTo?{id:replyTo.id,text:replyTo.text}:null};
     setMsgs(m=>({...m,[g]:[...(m[g]||[]),msg]}));
-    await supabase.from('messages').insert({text,user_id:user.id,group_id:g,sender_name:profile.name||'Tu',pinned:false});
+    await supabase.from('messages').insert({user_id:user.id,group_id:g,sender_name:profile.name||'Tu',data:{...msg,from:undefined}});
   };
   const pinMsg      = id=>setMsgs(m=>({...m,[g]:(m[g]||[]).map(x=>x.id===id?{...x,pinned:!x.pinned}:x)}));
   const addReaction = (mid,emoji)=>setReact(r=>({...r,[mid]:{...(r[mid]||{}),[emoji]:(r[mid]?.[emoji]||0)+1}}));
-  const addNote     = n =>{ setNotes(ns=>({...ns,[g]:[...(ns[g]||[]),n]})); supabase.from('notes').insert({...n,user_id:user.id,group_id:g}).then(()=>{}); };
-  const editNote    = n =>{ setNotes(ns=>({...ns,[g]:(ns[g]||[]).map(x=>x.id===n.id?n:x)})); supabase.from('notes').update(n).eq('id',n.id).then(()=>{}); };
+  const addNote     = n =>{ setNotes(ns=>({...ns,[g]:[...(ns[g]||[]),n]})); supabase.from('notes').insert({id:n.id,user_id:user.id,group_id:g,data:n}).then(()=>{}); };
+  const editNote    = n =>{ setNotes(ns=>({...ns,[g]:(ns[g]||[]).map(x=>x.id===n.id?n:x)})); supabase.from('notes').update({data:n}).eq('id',n.id).then(()=>{}); };
   const deleteNote  = id=>{ setNotes(ns=>({...ns,[g]:(ns[g]||[]).filter(x=>x.id!==id)})); supabase.from('notes').delete().eq('id',id).then(()=>{}); };
   const joinGroup   = grp=>{ setGroups(gs=>{if(gs.find(x=>x.id===grp.id))return gs;return [...gs,grp];}); setEvents(e=>({...e,[grp.id]:e[grp.id]||[]})); setTasks(t=>({...t,[grp.id]:t[grp.id]||[]})); setMsgs(m=>({...m,[grp.id]:m[grp.id]||[]})); setNotes(n=>({...n,[grp.id]:n[grp.id]||[]})); setTaskCats(tc=>({...tc,[grp.id]:tc[grp.id]||[]})); setAG(grp.id); };
   const addGroup    = grp=>{setGroups(gs=>[...gs,grp]);setEvents(e=>({...e,[grp.id]:[]}));setTasks(t=>({...t,[grp.id]:[]}));setMsgs(m=>({...m,[grp.id]:[]}));setNotes(n=>({...n,[grp.id]:[]}));setTaskCats(tc=>({...tc,[grp.id]:[]}));setNGM(false);setAG(grp.id);};
