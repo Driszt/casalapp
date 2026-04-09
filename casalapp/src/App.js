@@ -25,7 +25,7 @@ const TABS = [
 ];
 const TAB_LABEL = { dashboard:'Início', chat:'Chat', tasks:'Tarefas', notes:'Notas', calendar:'Calendário' };
 
-function genId() { return Date.now() + Math.random(); }
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function toDateStr(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
 function parseDate(text){
   const t=text.toLowerCase(), now=new Date();
