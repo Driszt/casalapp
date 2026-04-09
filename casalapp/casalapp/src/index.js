@@ -1,61 +1,46 @@
-import React, { useState, useEffect } from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
-import Login from './Login'
-import { supabase } from './supabase'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { useState, useEffect } from 'react';
+import { supabase } from './supabase';
+import App from './App';
+import Login from './Login';
 
 function Root() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [confirmed, setConfirmed] = useState(false)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Handle email confirmation redirect
-    const hash = window.location.hash
-    if (hash && hash.includes('access_token')) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          setUser(session.user)
-          setConfirmed(true)
-          // Clean URL
-          window.history.replaceState(null, '', window.location.pathname)
-        }
-        setLoading(false)
-      })
-    } else {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setUser(session?.user ?? null)
-        setLoading(false)
-      })
-    }
+    // Check existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-    return () => subscription.unsubscribe()
-  }, [])
+      setUser(session?.user ?? null);
+    });
 
-  if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#f7f7f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontFamily: 'Georgia, serif', fontSize: 16 }}>
-      ♥
-    </div>
-  )
+    return () => subscription.unsubscribe();
+  }, []);
 
-  if (confirmed && user) return (
-    <div style={{ minHeight: '100vh', background: '#f7f7f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif' }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
-        <h2 style={{ fontSize: 24, fontWeight: 400, color: '#1a1a1a', margin: '0 0 8px' }}>Email confirmado!</h2>
-        <p style={{ color: '#888', margin: '0 0 24px' }}>A tua conta está ativa.</p>
-        <button onClick={() => setConfirmed(false)} style={{ background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 28px', fontSize: 14, fontFamily: 'inherit', cursor: 'pointer' }}>
-          Entrar na app →
-        </button>
+  if (loading) {
+    return (
+      <div style={{ minHeight:'100vh', background:'#1e1810', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Georgia',serif" }}>
+        <div style={{ textAlign:'center' }}>
+          <div style={{ fontSize:32, marginBottom:12 }}>❤️</div>
+          <div style={{ fontSize:14, color:'#9a8e7e' }}>A carregar...</div>
+        </div>
       </div>
-    </div>
-  )
+    );
+  }
 
-  return user ? <App user={user} /> : <Login />
+  if (!user) {
+    return <Login onLogin={setUser}/>;
+  }
+
+  return <App user={user} onLogout={()=>setUser(null)}/>;
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'))
-root.render(<Root />)
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<React.StrictMode><Root/></React.StrictMode>);
