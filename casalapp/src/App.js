@@ -88,9 +88,9 @@ function Icon({ name, size=16, color=T.muted }) {
 
 // ── INIT DATA ─────────────────────────────────────────────────────────────────
 const INIT_GROUPS = [
-  { id:'casal',   name:'Nos dois',  emoji:'❤️', color:'#7c6d52', members:['tu'], admins:['tu'], type:'casal',        perms:{addEvent:true,editEvent:true,deleteEvent:true,addTask:true,editTask:true,deleteTask:true,addNote:true,chat:true} },
-  { id:'cozinha', name:'Cozinha',   emoji:'🍳', color:'#5a8a5a', members:['tu'], admins:['tu'], type:'colaborativo', perms:{addEvent:true,editEvent:true,deleteEvent:false,addTask:true,editTask:true,deleteTask:false,addNote:true,chat:true} },
-  { id:'oracao',  name:'Oracao',    emoji:'🙏', color:'#4a7a8a', members:['tu'], admins:['tu'], type:'colaborativo', perms:{addEvent:false,editEvent:false,deleteEvent:false,addTask:true,editTask:false,deleteTask:false,addNote:false,chat:true} },
+  { id:'casal',   name:'Nos dois',  emoji:'❤️', color:'#7c6d52', members:['tu','ela'],        admins:['tu','ela'], type:'casal',        perms:{addEvent:true,editEvent:true,deleteEvent:true,addTask:true,editTask:true,deleteTask:true,addNote:true,chat:true} },
+  { id:'cozinha', name:'Cozinha',   emoji:'🍳', color:'#5a8a5a', members:['tu','ela','mae'],   admins:['tu'],       type:'colaborativo', perms:{addEvent:true,editEvent:true,deleteEvent:false,addTask:true,editTask:true,deleteTask:false,addNote:true,chat:true} },
+  { id:'oracao',  name:'Oracao',    emoji:'🙏', color:'#4a7a8a', members:['tu','ela','pedro'], admins:['tu'],       type:'colaborativo', perms:{addEvent:false,editEvent:false,deleteEvent:false,addTask:true,editTask:false,deleteTask:false,addNote:false,chat:true} },
 ];
 const GROUP_TYPES = {
   casal:        { label:'Grupo de Casal',        icon:'❤️', color:'#c05a5a', desc:'Alteracoes precisam de aprovacao dos dois membros antes de serem aplicadas.' },
@@ -100,12 +100,40 @@ const DEFAULT_PERMS = {
   casal:        {addEvent:true,editEvent:true,deleteEvent:true,addTask:true,editTask:true,deleteTask:true,addNote:true,chat:true},
   colaborativo: {addEvent:true,editEvent:true,deleteEvent:false,addTask:true,editTask:true,deleteTask:false,addNote:true,chat:true},
 };
-const INIT_EVENTS = { casal:[], cozinha:[], oracao:[] };
-
-const INIT_TASKS = { casal:[], cozinha:[], oracao:[] };
-
-const INIT_MSGS = { casal:[], cozinha:[], oracao:[] };
-
+const INIT_EVENTS = {
+  casal:[
+    {id:1,title:'Aniversário dela',   date:'2026-04-06',type:'birthday',desc:'Não esquecer o presente!'},
+    {id:2,title:'Jantar romântico',   date:'2026-04-14',type:'date',    desc:'Restaurante às 20h'},
+    {id:3,title:'Consulta médica',    date:'2026-04-20',type:'medical', desc:'Clínica central, 10h'},
+    {id:4,title:'Fim de semana fora', date:'2026-04-25',type:'holiday', desc:''},
+    {id:5,title:'Aniversário casamento',date:'2026-06-15',type:'birthday',desc:''},
+    {id:6,title:'Férias de verão',    date:'2026-07-10',type:'holiday', desc:'Algarve'},
+  ],
+  cozinha:[{id:10,title:'Jantar de família',date:'2026-04-12',type:'date',desc:''}],
+  oracao: [{id:20,title:'Encontro semanal',date:'2026-04-10',type:'other',desc:''}],
+};
+const INIT_TASKS = {
+  casal:[
+    {id:1,text:'Comprar mantimentos',col:'A fazer',priority:'alta',done:false},
+    {id:2,text:'Pagar renda',col:'A fazer',priority:'alta',done:false},
+    {id:3,text:'Comprar presente aniversário',col:'A fazer',priority:'média',done:false},
+    {id:4,text:'Marcar consulta médica',col:'Em progresso',priority:'média',done:false},
+    {id:5,text:'Planear férias',col:'Em progresso',priority:'baixa',done:false},
+    {id:6,text:'Reservar jantar aniversário',col:'Concluído',priority:'alta',done:true},
+  ],
+  cozinha:[{id:10,text:'Comprar ingredientes',col:'A fazer',priority:'média',done:false}],
+  oracao:[{id:20,text:'Preparar leitura da semana',col:'A fazer',priority:'baixa',done:false}],
+};
+const INIT_MSGS = {
+  casal:[
+    {id:1,from:'her',text:'Amor, não te esqueças do jantar hoje! 🥰',time:'14:32'},
+    {id:2,from:'me',text:'Claro! Chego às 20h. Queres que traga algo?',time:'14:45'},
+    {id:3,from:'her',text:'Traz vinho 🍷',time:'14:47'},
+    {id:4,from:'me',text:'Perfeito ❤️',time:'14:48'},
+  ],
+  cozinha:[{id:10,from:'mae',text:'Quem traz a sobremesa?',time:'10:00'}],
+  oracao:[{id:20,from:'pedro',text:'Amanhã às 19h?',time:'09:30'}],
+};
 const INIT_WINS = {
   dashboard:{pos:{x:40, y:40}, size:{w:520,h:420},minimized:false,z:12},
   chat:     {pos:{x:80, y:60}, size:{w:480,h:400},minimized:false,z:11},
@@ -121,7 +149,15 @@ const DK = {
   accentMid:"#6a5a40", success:"#5a9a5a", danger:"#c06060", warning:"#c09040",
 };
 
-const INIT_NOTES = { casal:[], cozinha:[], oracao:[] };
+const INIT_NOTES = {
+  casal:[
+    {id:1,title:'Lista de compras',text:'__shopping__',items:[{id:11,text:'Leite',done:false},{id:12,text:'Pão',done:false},{id:13,text:'Fruta',done:true}],private:false,pinned:true},
+    {id:2,title:'Ideias férias',   text:'Algarve em julho\nMadeira em outubro',items:[],private:false,pinned:false},
+    {id:3,title:'Nota pessoal',    text:'Surpresa do aniversário',items:[],private:true,pinned:false},
+  ],
+  cozinha:[{id:10,title:'Receita favorita',text:'Bacalhau à brás',items:[],private:false,pinned:false}],
+  oracao: [],
+};
 
 function ArchiveInner({ events, tasks, T }) {
   const [activeTab,setAT] = useState('tasks');
@@ -741,75 +777,7 @@ function AccountModal({profile,onSave,onClose}){
     </div>
   );
 }
-// ── ENTER INVITE CODE ─────────────────────────────────────────────────────────
-function EnterInviteCode({ T, onJoin }) {
-  const [code,setCode]     = useState('');
-  const [status,setStatus] = useState(''); // '' | 'loading' | 'found' | 'error'
-  const [found,setFound]   = useState(null);
-
-  const lookup = async () => {
-    if(!code.trim()) return;
-    setStatus('loading');
-    // Extract code from full URL or use as-is
-    let inviteCode = code.trim();
-    if(inviteCode.includes('?invite=')) {
-      inviteCode = inviteCode.split('?invite=')[1].split('&')[0];
-    }
-    try {
-      const {data,error} = await supabase.from('invites').select('*').eq('id',inviteCode.toUpperCase()).single();
-      if(data&&!error&&!data.used_by) {
-        setFound({id:data.id,groupId:data.group_id,name:data.group_name,emoji:data.group_emoji,color:data.group_color,type:data.group_type,perms:data.group_perms});
-        setStatus('found');
-      } else {
-        setStatus('error');
-      }
-    } catch(e) { setStatus('error'); }
-  };
-
-  const join = async () => {
-    if(!found) return;
-    setStatus('loading');
-    try {
-      const {data:{user}} = await supabase.auth.getUser();
-      await supabase.from('user_groups').upsert({user_id:user.id,group_id:found.groupId,group_name:found.name,group_emoji:found.emoji,group_color:found.color,group_type:found.type,group_perms:JSON.stringify(found.perms||{})});
-      await supabase.from('invites').update({used_by:user.id,used_at:new Date().toISOString()}).eq('id',found.id);
-      if(onJoin) onJoin({id:found.groupId,name:found.name,emoji:found.emoji,color:found.color||'#7c6d52',type:found.type||'colaborativo',admins:[],members:['tu'],perms:found.perms||{}});
-      setCode(''); setFound(null); setStatus('');
-    } catch(e) { setStatus('error'); }
-  };
-
-  return (
-    <div>
-      <div style={{display:'flex',gap:8}}>
-        <input value={code} onChange={e=>{setCode(e.target.value);setStatus('');setFound(null);}}
-          onKeyDown={e=>e.key==='Enter'&&lookup()}
-          placeholder="Cola o link ou codigo de convite..."
-          style={{flex:1,border:'1px solid '+T.border,borderRadius:8,padding:'8px 12px',fontSize:12,outline:'none',fontFamily:'inherit',background:T.bg,color:T.text}}/>
-        <button onClick={lookup} disabled={status==='loading'}
-          style={{padding:'8px 14px',background:T.accentDark,border:'none',borderRadius:8,color:'#f5f0e8',fontSize:12,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>
-          {status==='loading'?'...':'Verificar'}
-        </button>
-      </div>
-      {status==='error'&&<div style={{fontSize:11,color:T.danger,marginTop:6}}>Codigo invalido, ja utilizado ou expirado.</div>}
-      {status==='found'&&found&&(
-        <div style={{marginTop:10,padding:'10px 14px',background:T.accentLight,border:'1px solid '+T.accent,borderRadius:10,display:'flex',alignItems:'center',gap:10}}>
-          <div style={{width:32,height:32,borderRadius:8,background:found.color||T.accent,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{found.emoji}</div>
-          <div style={{flex:1}}>
-            <div style={{fontSize:13,color:T.text,fontWeight:500}}>{found.name}</div>
-            <div style={{fontSize:11,color:T.muted}}>{found.type==='casal'?'❤️ Grupo de Casal':'👥 Grupo Colaborativo'}</div>
-          </div>
-          <button onClick={join}
-            style={{padding:'7px 16px',background:T.accentDark,border:'none',borderRadius:8,color:'#f5f0e8',fontSize:12,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>
-            Entrar
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-function GroupModal({group,onClose,onUpdate,onJoinGroup}){
+function GroupModal({group,onClose,onUpdate}){
   const T = G;
   const [tab,setTab]     = useState('info');
   const [color,setColor] = useState(group.color||'#7c6d52');
@@ -819,40 +787,9 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup}){
   const isAdmin = (group.admins||[me]).includes(me);
   const gt      = GROUP_TYPES[group.type||'colaborativo']||GROUP_TYPES.colaborativo;
   const PLABELS = [{k:'addEvent',l:'Adicionar eventos'},{k:'editEvent',l:'Editar eventos'},{k:'deleteEvent',l:'Eliminar eventos'},{k:'addTask',l:'Criar tarefas'},{k:'editTask',l:'Editar tarefas'},{k:'deleteTask',l:'Eliminar tarefas'},{k:'addNote',l:'Criar notas'},{k:'chat',l:'Enviar mensagens'}];
-  const [copied,setCopied]   = useState(false);
-  const [inviteLink,setLink] = useState('');
-  const [generating,setGen]  = useState(false);
-
-  const generateInvite = async () => {
-    setGen(true);
-    try {
-      const inviteId = Math.random().toString(36).slice(2,10).toUpperCase();
-      // Save to Supabase invites table
-      if(typeof supabase !== 'undefined') {
-        await supabase.from('invites').insert({
-          id: inviteId,
-          group_id: group.id,
-          group_name: group.name,
-          group_emoji: group.emoji,
-          group_color: group.color,
-          group_type: group.type||'colaborativo',
-          group_perms: group.perms,
-          group_admins: group.admins||[],
-          created_by_name: 'Admin',
-        }).then(()=>{});
-      }
-      const link = window.location.origin + '?invite=' + inviteId;
-      setLink(link);
-    } catch(e) { console.error(e); }
-    setGen(false);
-  };
-
-  const copy = () => {
-    if(!inviteLink) { generateInvite(); return; }
-    navigator.clipboard?.writeText(inviteLink).catch(()=>{});
-    setCopied(true);
-    setTimeout(()=>setCopied(false),2000);
-  };
+  const [copied,setCopied] = useState(false);
+  const link = 'https://casalapp.vercel.app/invite/'+group.id+'-xyz';
+  const copy = () => { navigator.clipboard?.writeText(link).catch(()=>{}); setCopied(true); setTimeout(()=>setCopied(false),2000); };
   const tbtn = (id,lbl) => <button key={id} onClick={()=>setTab(id)} style={{padding:'6px 14px',borderRadius:7,border:'none',background:tab===id?T.accentLight:'transparent',color:tab===id?T.accentDark:T.muted,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>{lbl}</button>;
   return(
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(30,24,16,0.45)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -883,23 +820,12 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup}){
             </div>}
             <div style={{marginBottom:12}}>
               <div style={{fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1.5,marginBottom:8}}>Link de convite</div>
-              {!inviteLink?(
-              <button onClick={generateInvite} disabled={generating}
-                style={{width:'100%',padding:'10px',background:T.accentDark,border:'none',borderRadius:8,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                {generating?'A gerar...':'🔗 Gerar link de convite'}
-              </button>
-            ):(
-              <div>
-                <div style={{display:'flex',gap:8,alignItems:'center',background:T.bg,border:'1px solid '+T.border,borderRadius:8,padding:'8px 12px',marginBottom:8}}>
-                  <span style={{flex:1,fontSize:11,color:T.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inviteLink}</span>
-                  <button onClick={copy} style={{background:copied?T.success:T.accentDark,border:'none',borderRadius:6,padding:'4px 12px',color:'#f5f0e8',fontSize:11,cursor:'pointer',fontFamily:'inherit',flexShrink:0,whiteSpace:'nowrap'}}>{copied?'✓ Copiado!':'Copiar'}</button>
-                </div>
-                <button onClick={()=>setLink('')} style={{fontSize:11,color:T.muted,background:'none',border:'none',cursor:'pointer',fontFamily:'inherit'}}>↺ Gerar novo link</button>
+              <div style={{display:'flex',gap:8,alignItems:'center',background:T.bg,border:'1px solid '+T.border,borderRadius:8,padding:'8px 12px'}}>
+                <span style={{flex:1,fontSize:11,color:T.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</span>
+                <button onClick={copy} style={{background:copied?T.success:T.accentDark,border:'none',borderRadius:6,padding:'4px 12px',color:'#f5f0e8',fontSize:11,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{copied?'Copiado!':'Copiar'}</button>
               </div>
-            )}
             </div>
             {group.type==='casal'&&<div style={{padding:'12px 14px',background:'#fef3c7',border:'1px solid #fde68a',borderRadius:10,fontSize:12,color:'#92400e',lineHeight:1.6}}>Grupo de casal - todas as alteracoes precisam de aprovacao dos dois membros.</div>}
-
           </>}
           {tab==='membros'&&<>
             <div style={{fontSize:11,color:T.muted,marginBottom:14,lineHeight:1.6}}>Clica em + Admin para promover um membro. Admins tem controlo total.</div>
@@ -943,9 +869,9 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup}){
 }
 
 // ── NEW GROUP MODAL ───────────────────────────────────────────────────────────
-function NewGroupModal({onSave,onClose,onJoinGroup}){
+function NewGroupModal({onSave,onClose}){
   const T = G;
-  const [step,setStep]   = useState(-1); // -1=choose action, 0=choose type, 1=configure
+  const [step,setStep]   = useState(0);
   const [type,setType]   = useState('');
   const [name,setName]   = useState('');
   const [emoji,setEmoji] = useState('💬');
@@ -960,39 +886,12 @@ function NewGroupModal({onSave,onClose,onJoinGroup}){
       <div onClick={e=>e.stopPropagation()} style={{background:T.card,border:'1px solid '+T.border,borderRadius:18,width:420,maxHeight:'88vh',display:'flex',flexDirection:'column',boxShadow:'0 20px 70px rgba(30,24,16,0.25)',overflow:'hidden',fontFamily:'inherit'}}>
         <div style={{padding:'18px 24px 14px',borderBottom:'1px solid '+T.border,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <div>
-            <div style={{fontSize:16,fontWeight:400,color:T.text}}>{step===-1?'Grupos':step===2?'Entrar num grupo':'Novo grupo'}</div>
-            {step>=0&&step!==2&&<div style={{fontSize:11,color:T.muted,marginTop:2}}>Passo {step+1} de 2</div>}
+            <div style={{fontSize:16,fontWeight:400,color:T.text}}>Novo grupo</div>
+            <div style={{fontSize:11,color:T.muted,marginTop:2}}>Passo {step+1} de 2</div>
           </div>
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',fontSize:20,color:T.muted}}>×</button>
         </div>
         <div style={{flex:1,overflowY:'auto',padding:'20px 24px'}}>
-          {step===-1&&(
-            <div>
-              <div style={{fontSize:14,color:T.text,marginBottom:16}}>O que queres fazer?</div>
-              <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                <button onClick={()=>setStep(0)}
-                  style={{display:'flex',gap:14,alignItems:'center',padding:'16px',borderRadius:12,border:'2px solid '+T.border,background:T.bg,cursor:'pointer',textAlign:'left',fontFamily:'inherit',transition:'all 0.15s'}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor=T.accent;e.currentTarget.style.background=T.accentLight;}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.background=T.bg;}}>
-                  <div style={{width:44,height:44,borderRadius:10,background:T.accentLight,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>✚</div>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:500,color:T.text,marginBottom:3}}>Criar novo grupo</div>
-                    <div style={{fontSize:12,color:T.muted}}>Cria um grupo de casal ou colaborativo</div>
-                  </div>
-                </button>
-                <button onClick={()=>setStep(2)}
-                  style={{display:'flex',gap:14,alignItems:'center',padding:'16px',borderRadius:12,border:'2px solid '+T.border,background:T.bg,cursor:'pointer',textAlign:'left',fontFamily:'inherit',transition:'all 0.15s'}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor='#5a8a5a';e.currentTarget.style.background='#5a8a5a11';}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.background=T.bg;}}>
-                  <div style={{width:44,height:44,borderRadius:10,background:'#5a8a5a22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>🔗</div>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:500,color:T.text,marginBottom:3}}>Entrar num grupo</div>
-                    <div style={{fontSize:12,color:T.muted}}>Tens um link ou codigo de convite</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
           {step===0&&(
             <div>
               <div style={{fontSize:14,color:T.text,marginBottom:16}}>Que tipo de grupo queres criar?</div>
@@ -1010,12 +909,6 @@ function NewGroupModal({onSave,onClose,onJoinGroup}){
                   </button>
                 ))}
               </div>
-            </div>
-          )}
-          {step===2&&(
-            <div>
-              <div style={{fontSize:14,color:T.text,marginBottom:16}}>Cola o link ou codigo de convite</div>
-              <EnterInviteCode T={T} onJoin={(grp)=>{onJoinGroup&&onJoinGroup(grp);onClose();}}/>
             </div>
           )}
           {step===1&&(
@@ -1065,10 +958,10 @@ function NewGroupModal({onSave,onClose,onJoinGroup}){
             </div>
           )}
         </div>
-        {(step===0||step===1||step===2)&&(
+        {step===1&&(
           <div style={{padding:'14px 24px',borderTop:'1px solid '+T.border,display:'flex',gap:10,justifyContent:'flex-end',flexShrink:0}}>
-            <button onClick={()=>step===2?setStep(-1):step===1?setStep(0):setStep(-1)} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>← Voltar</button>
-            {step===1&&<button onClick={()=>name&&onSave({id:genId()+'',name,emoji,color,type,admins:['tu'],members:['tu'],perms,isDefault:false})} style={{padding:'9px 20px',background:color,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Criar grupo</button>}
+            <button onClick={()=>setStep(0)} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
+            <button onClick={()=>name&&onSave({id:genId()+'',name,emoji,color,type,admins:['tu'],members:['tu'],perms,isDefault:false})} style={{padding:'9px 20px',background:color,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Criar grupo</button>
           </div>
         )}
       </div>
@@ -1797,36 +1690,82 @@ export default function App({ user, onLogout }) {
   const maxZ = useRef(12);
 
   // ── LOAD FROM SUPABASE ───────────────────────────────────────────────────────
+  // ── LOCAL STORAGE HELPERS ─────────────────────────────────────────────────
+  const lsKey  = (k) => 'casal_' + user.id + '_' + k;
+  const lsSave = (k,v) => { try{ localStorage.setItem(lsKey(k), JSON.stringify(v)); }catch(e){} };
+  const lsLoad = (k,d) => { try{ const v=localStorage.getItem(lsKey(k)); return v?JSON.parse(v):d; }catch(e){ return d; } };
+
   useEffect(()=>{
     if(!user) return;
-    const load = async () => {
-      const { data: prof } = await supabase.from('profiles').select('*').eq('id',user.id).single();
-      if(prof){ setProfile(p=>({...p,name:prof.name||p.name,photo:prof.photo||null})); }
-      else {
-        // First login - show onboarding
-        setOnboard(true);
-        await supabase.from('profiles').upsert({id:user.id,email:user.email,name:user.email.split('@')[0]});
-      }
+    const uid = user.id;
 
-      const { data: evts } = await supabase.from('events').select('*').eq('user_id',user.id);
-      if(evts?.length){ const g={}; evts.forEach(e=>{ if(!g[e.group_id])g[e.group_id]=[]; g[e.group_id].push(e.data||e); }); setEvents(g); }
-      else setEvents({casal:[],cozinha:[],oracao:[]});
+    // ── STEP 1: load localStorage instantly so page never looks empty ─────────
+    const lsEvents = lsLoad('events', null);
+    const lsTasks  = lsLoad('tasks',  null);
+    const lsNotes  = lsLoad('notes',  null);
+    const lsMsgs   = lsLoad('msgs',   null);
+    const lsGroups = lsLoad('groups', null);
+    const lsCats   = lsLoad('cats',   null);
+    if(lsEvents) setEvents(lsEvents);
+    if(lsTasks)  setTasks(lsTasks);
+    if(lsNotes)  setNotes(lsNotes);
+    if(lsMsgs)   setMsgs(lsMsgs);
+    if(lsGroups) setGroups(lsGroups);
+    if(lsCats)   setTaskCats(lsCats);
 
-      const { data: tks } = await supabase.from('tasks').select('*').eq('user_id',user.id);
-      if(tks?.length){ const g={}; tks.forEach(t=>{ if(!g[t.group_id])g[t.group_id]=[]; g[t.group_id].push(t.data||t); }); setTasks(g); }
-      else setTasks({casal:[],cozinha:[],oracao:[]});
+    // ── STEP 2: sync everything from Supabase ─────────────────────────────────
+    const sync = async () => {
+      try {
+        // Profile
+        const { data: prof, error: profErr } = await supabase.from('profiles').select('*').eq('id',uid).single();
+        if(profErr && profErr.code !== 'PGRST116') console.error('Profile load:', profErr);
+        if(prof){ setProfile(p=>({...p,name:prof.name||p.name,photo:prof.photo||null})); }
+        else {
+          setOnboard(true);
+          const {error:pe} = await supabase.from('profiles').insert({id:uid,email:user.email,name:user.email.split('@')[0]});
+          if(pe) console.error('Profile create:', pe);
+        }
 
-      const { data: ms } = await supabase.from('messages').select('*').order('created_at',{ascending:true}).limit(200);
-      if(ms?.length){ const g={}; ms.forEach(m=>{ if(!g[m.group_id])g[m.group_id]=[]; const d=m.data||m; g[m.group_id].push({...d,from:m.user_id===user.id?'me':m.sender_name||'outro',time:new Date(m.created_at).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),_date:m.created_at.split('T')[0]}); }); setMsgs(g); }
-      else setMsgs({casal:[],cozinha:[],oracao:[]});
+        // Events
+        const { data: evts, error: evtErr } = await supabase.from('events').select('id,group_id,data').eq('user_id',uid);
+        if(evtErr) console.error('Events load:', evtErr);
+        else if(evts?.length){
+          const g={}; evts.forEach(e=>{ if(!g[e.group_id])g[e.group_id]=[]; g[e.group_id].push({...e.data,id:e.id}); });
+          setEvents(g); lsSave('events',g);
+        }
 
-      const { data: ns } = await supabase.from('notes').select('*').eq('user_id',user.id);
-      if(ns?.length){ const g={}; ns.forEach(n=>{ if(!g[n.group_id])g[n.group_id]=[]; g[n.group_id].push(n.data||n); }); setNotes(g); }
-      else setNotes({casal:[],cozinha:[],oracao:[]});
+        // Tasks
+        const { data: tks, error: tkErr } = await supabase.from('tasks').select('id,group_id,data').eq('user_id',uid);
+        if(tkErr) console.error('Tasks load:', tkErr);
+        else if(tks?.length){
+          const g={}; tks.forEach(t=>{ if(!g[t.group_id])g[t.group_id]=[]; g[t.group_id].push({...t.data,id:t.id}); });
+          setTasks(g); lsSave('tasks',g);
+        }
 
+        // Notes
+        const { data: ns, error: nsErr } = await supabase.from('notes').select('id,group_id,data').eq('user_id',uid);
+        if(nsErr) console.error('Notes load:', nsErr);
+        else if(ns?.length){
+          const g={}; ns.forEach(n=>{ if(!g[n.group_id])g[n.group_id]=[]; g[n.group_id].push({...n.data,id:n.id}); });
+          setNotes(g); lsSave('notes',g);
+        }
+
+        // Messages (real-time chat between users)
+        const { data: ms, error: msErr } = await supabase.from('messages').select('*').order('created_at',{ascending:true}).limit(200);
+        if(msErr) console.error('Messages load:', msErr);
+        else if(ms?.length){
+          const g={}; ms.forEach(m=>{
+            if(!g[m.group_id])g[m.group_id]=[];
+            const d=m.data||{};
+            g[m.group_id].push({...d,id:m.id,from:m.user_id===uid?'me':m.sender_name||'outro',time:new Date(m.created_at).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),_date:m.created_at.split('T')[0]});
+          });
+          setMsgs(g); lsSave('msgs',g);
+        }
+
+      } catch(e){ console.error('Supabase sync failed:', e); }
       setDbReady(true);
     };
-    load();
+    sync();
   },[user]);
 
   // ── REAL-TIME MESSAGES ────────────────────────────────────────────────────
@@ -1841,6 +1780,13 @@ export default function App({ user, onLogout }) {
       }).subscribe();
     return ()=>supabase.removeChannel(ch);
   },[user,dbReady]);
+
+  // ── PERSIST TO LOCALSTORAGE ──────────────────────────────────────────────
+  useEffect(()=>{ if(dbReady) lsSave('events',events); },[events,dbReady]);
+  useEffect(()=>{ if(dbReady) lsSave('tasks',tasks); },[tasks,dbReady]);
+  useEffect(()=>{ if(dbReady) lsSave('notes',notes); },[notes,dbReady]);
+  useEffect(()=>{ if(dbReady) lsSave('groups',groups); },[groups,dbReady]);
+  useEffect(()=>{ if(dbReady) lsSave('cats',taskCats); },[taskCats,dbReady]);
 
   // ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────
   useEffect(()=>{
@@ -1878,13 +1824,17 @@ export default function App({ user, onLogout }) {
   };
 
   // ── MUTATIONS (with Supabase sync) ────────────────────────────────────────
-  const addEvent    = ev=>{ if(!hasPerm('addEvent')) return; if(isCasalGrp()){proposeAction('event',ev,'add');return;} setEvents(e=>({...e,[g]:[...(e[g]||[]).filter(x=>x.id!==ev.id),ev]})); supabase.from('events').upsert({id:ev.id,user_id:user.id,group_id:g,data:ev}).then(()=>{}); };
-  const editEvent   = ev=>{ if(!hasPerm('editEvent')) return; if(isCasalGrp()){proposeAction('event',ev,'edit');return;} setEvents(e=>({...e,[g]:(e[g]||[]).map(x=>x.id===ev.id?ev:x)})); supabase.from('events').update({data:ev}).eq('id',ev.id).then(()=>{}); };
-  const deleteEvent = id=>{ if(!hasPerm('deleteEvent')) return; if(isCasalGrp()){proposeAction('event',{id},'delete');return;} setEvents(e=>({...e,[g]:(e[g]||[]).filter(x=>x.id!==id)})); supabase.from('events').delete().eq('id',id).then(()=>{}); };
-  const addTask     = t =>{ if(!hasPerm('addTask')) return; if(isCasalGrp()&&!t.priv){proposeAction('task',t,'add');return;} setTasks(e=>({...e,[g]:[...(e[g]||[]),t]})); supabase.from('tasks').insert({id:t.id,user_id:user.id,group_id:g,data:t}).then(()=>{}); };
-  const editTask    = t =>{ setTasks(e=>({...e,[g]:(e[g]||[]).map(x=>x.id===t.id?t:x)})); supabase.from('tasks').update({data:t}).eq('id',t.id).then(()=>{}); };
-  const deleteTask  = id=>{ setTasks(e=>({...e,[g]:(e[g]||[]).filter(x=>x.id!==id)})); supabase.from('tasks').delete().eq('id',id).then(()=>{}); };
-  const moveTask    = (id,col)=>setTasks(e=>{
+  const saveEventsLS = (upd) => lsSave('events', upd);
+  const saveTasksLS  = (upd) => lsSave('tasks',  upd);
+  const saveNotesLS  = (upd) => lsSave('notes',  upd);
+
+  const addEvent    = ev=>{ if(!hasPerm('addEvent')) return; if(isCasalGrp()){proposeAction('event',ev,'add');return;} setEvents(e=>{const u={...e,[g]:[...(e[g]||[]).filter(x=>x.id!==ev.id),ev]};saveEventsLS(u);return u;}); supabase.from('events').upsert({id:ev.id,user_id:user.id,group_id:g,data:ev}).then(r=>r.error&&console.error('save event:',r.error)); };
+  const editEvent   = ev=>{ if(!hasPerm('editEvent')) return; if(isCasalGrp()){proposeAction('event',ev,'edit');return;} setEvents(e=>{const u={...e,[g]:(e[g]||[]).map(x=>x.id===ev.id?ev:x)};saveEventsLS(u);return u;}); supabase.from('events').update({data:ev}).eq('id',ev.id).then(r=>r.error&&console.error('edit event:',r.error)); };
+  const deleteEvent = id=>{ if(!hasPerm('deleteEvent')) return; if(isCasalGrp()){proposeAction('event',{id},'delete');return;} setEvents(e=>{const u={...e,[g]:(e[g]||[]).filter(x=>x.id!==id)};saveEventsLS(u);return u;}); supabase.from('events').delete().eq('id',id).then(r=>r.error&&console.error('del event:',r.error)); };
+  const addTask     = t =>{ if(!hasPerm('addTask')) return; if(isCasalGrp()&&!t.priv){proposeAction('task',t,'add');return;} setTasks(e=>{const u={...e,[g]:[...(e[g]||[]),t]};saveTasksLS(u);return u;}); supabase.from('tasks').insert({id:t.id,user_id:user.id,group_id:g,data:t}).then(r=>r.error&&console.error('save task:',r.error)); };
+  const editTask    = t =>{ setTasks(e=>{const u={...e,[g]:(e[g]||[]).map(x=>x.id===t.id?t:x)};saveTasksLS(u);return u;}); supabase.from('tasks').update({data:t}).eq('id',t.id).then(r=>r.error&&console.error('edit task:',r.error)); };
+  const deleteTask  = id=>{ setTasks(e=>{const u={...e,[g]:(e[g]||[]).filter(x=>x.id!==id)};saveTasksLS(u);return u;}); supabase.from('tasks').delete().eq('id',id).then(r=>r.error&&console.error('del task:',r.error)); };
+  const moveTask    = (id,col)=>setTasks(e=>{ /* ls save handled by editTask equiv */
     const task=(e[g]||[]).find(t=>t.id===id);
     const updated=(e[g]||[]).map(t=>t.id===id?{...t,col,done:col==='Concluído'}:t);
     supabase.from('tasks').update({col,done:col==='Concluído'}).eq('id',id).then(()=>{});
@@ -1907,11 +1857,11 @@ export default function App({ user, onLogout }) {
   };
   const pinMsg      = id=>setMsgs(m=>({...m,[g]:(m[g]||[]).map(x=>x.id===id?{...x,pinned:!x.pinned}:x)}));
   const addReaction = (mid,emoji)=>setReact(r=>({...r,[mid]:{...(r[mid]||{}),[emoji]:(r[mid]?.[emoji]||0)+1}}));
-  const addNote     = n =>{ setNotes(ns=>({...ns,[g]:[...(ns[g]||[]),n]})); supabase.from('notes').insert({id:n.id,user_id:user.id,group_id:g,data:n}).then(()=>{}); };
-  const editNote    = n =>{ setNotes(ns=>({...ns,[g]:(ns[g]||[]).map(x=>x.id===n.id?n:x)})); supabase.from('notes').update({data:n}).eq('id',n.id).then(()=>{}); };
-  const deleteNote  = id=>{ setNotes(ns=>({...ns,[g]:(ns[g]||[]).filter(x=>x.id!==id)})); supabase.from('notes').delete().eq('id',id).then(()=>{}); };
-  const joinGroup   = grp=>{ setGroups(gs=>{if(gs.find(x=>x.id===grp.id))return gs;return [...gs,grp];}); setEvents(e=>({...e,[grp.id]:e[grp.id]||[]})); setTasks(t=>({...t,[grp.id]:t[grp.id]||[]})); setMsgs(m=>({...m,[grp.id]:m[grp.id]||[]})); setNotes(n=>({...n,[grp.id]:n[grp.id]||[]})); setTaskCats(tc=>({...tc,[grp.id]:tc[grp.id]||[]})); setAG(grp.id); };
-  const addGroup    = grp=>{setGroups(gs=>[...gs,grp]);setEvents(e=>({...e,[grp.id]:[]}));setTasks(t=>({...t,[grp.id]:[]}));setMsgs(m=>({...m,[grp.id]:[]}));setNotes(n=>({...n,[grp.id]:[]}));setTaskCats(tc=>({...tc,[grp.id]:[]}));setNGM(false);setAG(grp.id);};
+  const addNote     = n =>{ setNotes(ns=>{const u={...ns,[g]:[...(ns[g]||[]),n]};saveNotesLS(u);return u;}); supabase.from('notes').insert({id:n.id,user_id:user.id,group_id:g,data:n}).then(r=>r.error&&console.error('save note:',r.error)); };
+  const editNote    = n =>{ setNotes(ns=>{const u={...ns,[g]:(ns[g]||[]).map(x=>x.id===n.id?n:x)};saveNotesLS(u);return u;}); supabase.from('notes').update({data:n}).eq('id',n.id).then(r=>r.error&&console.error('edit note:',r.error)); };
+  const deleteNote  = id=>{ setNotes(ns=>{const u={...ns,[g]:(ns[g]||[]).filter(x=>x.id!==id)};saveNotesLS(u);return u;}); supabase.from('notes').delete().eq('id',id).then(r=>r.error&&console.error('del note:',r.error)); };
+  const joinGroup   = grp=>{ setGroups(gs=>{if(gs.find(x=>x.id===grp.id))return gs;const u=[...gs,grp];lsSave('groups',u);return u;}); setEvents(e=>({...e,[grp.id]:e[grp.id]||[]})); setTasks(t=>({...t,[grp.id]:t[grp.id]||[]})); setMsgs(m=>({...m,[grp.id]:m[grp.id]||[]})); setNotes(n=>({...n,[grp.id]:n[grp.id]||[]})); setTaskCats(tc=>({...tc,[grp.id]:tc[grp.id]||[]})); setAG(grp.id); };
+  const addGroup    = grp=>{setGroups(gs=>{const u=[...gs,grp];lsSave('groups',u);return u;});setEvents(e=>({...e,[grp.id]:[]}));setTasks(t=>({...t,[grp.id]:[]}));setMsgs(m=>({...m,[grp.id]:[]}));setNotes(n=>({...n,[grp.id]:[]}));setTaskCats(tc=>({...tc,[grp.id]:[]}));setNGM(false);setAG(grp.id);};
   const approveProposal = id=>{
     const p=proposals.find(x=>x.id===id);
     if(p){
@@ -1938,7 +1888,7 @@ export default function App({ user, onLogout }) {
   const renderTab = id => {
     if(id==='dashboard') return <DashboardView events={events[g]||[]} tasks={tasks[g]||[]} msgs={msgs[g]||[]} notes={notes[g]||[]} profile={profile} proposals={proposals} groups={groups} onNav={setTab} onApprove={approveProposal} onReject={rejectProposal}/>;
     if(id==='chat')      return <ChatView messages={msgs[g]||[]} onSend={sendMsg} groupColor={curGroup?.color} onReact={addReaction} reactions={reactions} onPin={pinMsg}/>;
-    if(id==='tasks')     return <KanbanView tasks={tasks[g]||[]} onAddTask={addTask} onEditTask={editTask} onDeleteTask={deleteTask} onMoveTask={moveTask} onSendToGroup={item=>setSendM({item,type:'task'})} cats={taskCats[g]||[]} onAddCat={name=>setTaskCats(prev=>({...prev,[g]:[...(prev[g]||[]),name]}))} onRemoveCat={name=>setTaskCats(prev=>({...prev,[g]:(prev[g]||[]).filter(c=>c!==name)}))}/>;
+    if(id==='tasks')     return <KanbanView tasks={tasks[g]||[]} onAddTask={addTask} onEditTask={editTask} onDeleteTask={deleteTask} onMoveTask={moveTask} onSendToGroup={item=>setSendM({item,type:'task'})} cats={taskCats[g]||[]} onAddCat={name=>setTaskCats(prev=>{const u={...prev,[g]:[...(prev[g]||[]),name]};lsSave('cats',u);return u;})} onRemoveCat={name=>setTaskCats(prev=>{const u={...prev,[g]:(prev[g]||[]).filter(c=>c!==name)};lsSave('cats',u);return u;})}/>;
     if(id==='notes')     return <NotesView notes={notes[g]||[]} onAdd={addNote} onEdit={editNote} onDelete={deleteNote}/>;
     if(id==='calendar')  return <CalendarView events={events[g]||[]} onAddEvent={addEvent} onEditEvent={editEvent} onDeleteEvent={deleteEvent}/>;
     return null;
