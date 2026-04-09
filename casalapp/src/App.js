@@ -88,9 +88,9 @@ function Icon({ name, size=16, color=T.muted }) {
 
 // ── INIT DATA ─────────────────────────────────────────────────────────────────
 const INIT_GROUPS = [
-  { id:'casal',   name:'Nos dois',  emoji:'❤️', color:'#7c6d52', members:['tu'], admins:['tu'], type:'casal',        perms:{addEvent:true,editEvent:true,deleteEvent:true,addTask:true,editTask:true,deleteTask:true,addNote:true,chat:true} },
-  { id:'cozinha', name:'Cozinha',   emoji:'🍳', color:'#5a8a5a', members:['tu'], admins:['tu'], type:'colaborativo', perms:{addEvent:true,editEvent:true,deleteEvent:false,addTask:true,editTask:true,deleteTask:false,addNote:true,chat:true} },
-  { id:'oracao',  name:'Oracao',    emoji:'🙏', color:'#4a7a8a', members:['tu'], admins:['tu'], type:'colaborativo', perms:{addEvent:false,editEvent:false,deleteEvent:false,addTask:true,editTask:false,deleteTask:false,addNote:false,chat:true} },
+  { id:'casal',   name:'Nos dois',  emoji:'❤️', color:'#7c6d52', members:['tu','ela'],        admins:['tu','ela'], type:'casal',        perms:{addEvent:true,editEvent:true,deleteEvent:true,addTask:true,editTask:true,deleteTask:true,addNote:true,chat:true} },
+  { id:'cozinha', name:'Cozinha',   emoji:'🍳', color:'#5a8a5a', members:['tu','ela','mae'],   admins:['tu'],       type:'colaborativo', perms:{addEvent:true,editEvent:true,deleteEvent:false,addTask:true,editTask:true,deleteTask:false,addNote:true,chat:true} },
+  { id:'oracao',  name:'Oracao',    emoji:'🙏', color:'#4a7a8a', members:['tu','ela','pedro'], admins:['tu'],       type:'colaborativo', perms:{addEvent:false,editEvent:false,deleteEvent:false,addTask:true,editTask:false,deleteTask:false,addNote:false,chat:true} },
 ];
 const GROUP_TYPES = {
   casal:        { label:'Grupo de Casal',        icon:'❤️', color:'#c05a5a', desc:'Alteracoes precisam de aprovacao dos dois membros antes de serem aplicadas.' },
@@ -124,8 +124,16 @@ const INIT_TASKS = {
   cozinha:[{id:10,text:'Comprar ingredientes',col:'A fazer',priority:'média',done:false}],
   oracao:[{id:20,text:'Preparar leitura da semana',col:'A fazer',priority:'baixa',done:false}],
 };
-const INIT_MSGS = { casal:[], cozinha:[], oracao:[] };
-
+const INIT_MSGS = {
+  casal:[
+    {id:1,from:'her',text:'Amor, não te esqueças do jantar hoje! 🥰',time:'14:32'},
+    {id:2,from:'me',text:'Claro! Chego às 20h. Queres que traga algo?',time:'14:45'},
+    {id:3,from:'her',text:'Traz vinho 🍷',time:'14:47'},
+    {id:4,from:'me',text:'Perfeito ❤️',time:'14:48'},
+  ],
+  cozinha:[{id:10,from:'mae',text:'Quem traz a sobremesa?',time:'10:00'}],
+  oracao:[{id:20,from:'pedro',text:'Amanhã às 19h?',time:'09:30'}],
+};
 const INIT_WINS = {
   dashboard:{pos:{x:40, y:40}, size:{w:520,h:420},minimized:false,z:12},
   chat:     {pos:{x:80, y:60}, size:{w:480,h:400},minimized:false,z:11},
@@ -769,75 +777,7 @@ function AccountModal({profile,onSave,onClose}){
     </div>
   );
 }
-// ── ENTER INVITE CODE ─────────────────────────────────────────────────────────
-function EnterInviteCode({ T, onJoin }) {
-  const [code,setCode]     = useState('');
-  const [status,setStatus] = useState(''); // '' | 'loading' | 'found' | 'error'
-  const [found,setFound]   = useState(null);
-
-  const lookup = async () => {
-    if(!code.trim()) return;
-    setStatus('loading');
-    // Extract code from full URL or use as-is
-    let inviteCode = code.trim();
-    if(inviteCode.includes('?invite=')) {
-      inviteCode = inviteCode.split('?invite=')[1].split('&')[0];
-    }
-    try {
-      const {data,error} = await supabase.from('invites').select('*').eq('id',inviteCode.toUpperCase()).single();
-      if(data&&!error&&!data.used_by) {
-        setFound({id:data.id,groupId:data.group_id,name:data.group_name,emoji:data.group_emoji,color:data.group_color,type:data.group_type,perms:data.group_perms});
-        setStatus('found');
-      } else {
-        setStatus('error');
-      }
-    } catch(e) { setStatus('error'); }
-  };
-
-  const join = async () => {
-    if(!found) return;
-    setStatus('loading');
-    try {
-      const {data:{user}} = await supabase.auth.getUser();
-      await supabase.from('user_groups').upsert({user_id:user.id,group_id:found.groupId,group_name:found.name,group_emoji:found.emoji,group_color:found.color,group_type:found.type,group_perms:JSON.stringify(found.perms||{})});
-      await supabase.from('invites').update({used_by:user.id,used_at:new Date().toISOString()}).eq('id',found.id);
-      if(onJoin) onJoin({id:found.groupId,name:found.name,emoji:found.emoji,color:found.color||'#7c6d52',type:found.type||'colaborativo',admins:[],members:['tu'],perms:found.perms||{}});
-      setCode(''); setFound(null); setStatus('');
-    } catch(e) { setStatus('error'); }
-  };
-
-  return (
-    <div>
-      <div style={{display:'flex',gap:8}}>
-        <input value={code} onChange={e=>{setCode(e.target.value);setStatus('');setFound(null);}}
-          onKeyDown={e=>e.key==='Enter'&&lookup()}
-          placeholder="Cola o link ou codigo de convite..."
-          style={{flex:1,border:'1px solid '+T.border,borderRadius:8,padding:'8px 12px',fontSize:12,outline:'none',fontFamily:'inherit',background:T.bg,color:T.text}}/>
-        <button onClick={lookup} disabled={status==='loading'}
-          style={{padding:'8px 14px',background:T.accentDark,border:'none',borderRadius:8,color:'#f5f0e8',fontSize:12,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>
-          {status==='loading'?'...':'Verificar'}
-        </button>
-      </div>
-      {status==='error'&&<div style={{fontSize:11,color:T.danger,marginTop:6}}>Codigo invalido, ja utilizado ou expirado.</div>}
-      {status==='found'&&found&&(
-        <div style={{marginTop:10,padding:'10px 14px',background:T.accentLight,border:'1px solid '+T.accent,borderRadius:10,display:'flex',alignItems:'center',gap:10}}>
-          <div style={{width:32,height:32,borderRadius:8,background:found.color||T.accent,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{found.emoji}</div>
-          <div style={{flex:1}}>
-            <div style={{fontSize:13,color:T.text,fontWeight:500}}>{found.name}</div>
-            <div style={{fontSize:11,color:T.muted}}>{found.type==='casal'?'❤️ Grupo de Casal':'👥 Grupo Colaborativo'}</div>
-          </div>
-          <button onClick={join}
-            style={{padding:'7px 16px',background:T.accentDark,border:'none',borderRadius:8,color:'#f5f0e8',fontSize:12,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>
-            Entrar
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-function GroupModal({group,onClose,onUpdate,onJoinGroup}){
+function GroupModal({group,onClose,onUpdate}){
   const T = G;
   const [tab,setTab]     = useState('info');
   const [color,setColor] = useState(group.color||'#7c6d52');
@@ -847,40 +787,9 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup}){
   const isAdmin = (group.admins||[me]).includes(me);
   const gt      = GROUP_TYPES[group.type||'colaborativo']||GROUP_TYPES.colaborativo;
   const PLABELS = [{k:'addEvent',l:'Adicionar eventos'},{k:'editEvent',l:'Editar eventos'},{k:'deleteEvent',l:'Eliminar eventos'},{k:'addTask',l:'Criar tarefas'},{k:'editTask',l:'Editar tarefas'},{k:'deleteTask',l:'Eliminar tarefas'},{k:'addNote',l:'Criar notas'},{k:'chat',l:'Enviar mensagens'}];
-  const [copied,setCopied]   = useState(false);
-  const [inviteLink,setLink] = useState('');
-  const [generating,setGen]  = useState(false);
-
-  const generateInvite = async () => {
-    setGen(true);
-    try {
-      const inviteId = Math.random().toString(36).slice(2,10).toUpperCase();
-      // Save to Supabase invites table
-      if(typeof supabase !== 'undefined') {
-        await supabase.from('invites').insert({
-          id: inviteId,
-          group_id: group.id,
-          group_name: group.name,
-          group_emoji: group.emoji,
-          group_color: group.color,
-          group_type: group.type||'colaborativo',
-          group_perms: group.perms,
-          group_admins: group.admins||[],
-          created_by_name: 'Admin',
-        }).then(()=>{});
-      }
-      const link = window.location.origin + '?invite=' + inviteId;
-      setLink(link);
-    } catch(e) { console.error(e); }
-    setGen(false);
-  };
-
-  const copy = () => {
-    if(!inviteLink) { generateInvite(); return; }
-    navigator.clipboard?.writeText(inviteLink).catch(()=>{});
-    setCopied(true);
-    setTimeout(()=>setCopied(false),2000);
-  };
+  const [copied,setCopied] = useState(false);
+  const link = 'https://casalapp.vercel.app/invite/'+group.id+'-xyz';
+  const copy = () => { navigator.clipboard?.writeText(link).catch(()=>{}); setCopied(true); setTimeout(()=>setCopied(false),2000); };
   const tbtn = (id,lbl) => <button key={id} onClick={()=>setTab(id)} style={{padding:'6px 14px',borderRadius:7,border:'none',background:tab===id?T.accentLight:'transparent',color:tab===id?T.accentDark:T.muted,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>{lbl}</button>;
   return(
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(30,24,16,0.45)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -911,26 +820,12 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup}){
             </div>}
             <div style={{marginBottom:12}}>
               <div style={{fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1.5,marginBottom:8}}>Link de convite</div>
-              {!inviteLink?(
-              <button onClick={generateInvite} disabled={generating}
-                style={{width:'100%',padding:'10px',background:T.accentDark,border:'none',borderRadius:8,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                {generating?'A gerar...':'🔗 Gerar link de convite'}
-              </button>
-            ):(
-              <div>
-                <div style={{display:'flex',gap:8,alignItems:'center',background:T.bg,border:'1px solid '+T.border,borderRadius:8,padding:'8px 12px',marginBottom:8}}>
-                  <span style={{flex:1,fontSize:11,color:T.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inviteLink}</span>
-                  <button onClick={copy} style={{background:copied?T.success:T.accentDark,border:'none',borderRadius:6,padding:'4px 12px',color:'#f5f0e8',fontSize:11,cursor:'pointer',fontFamily:'inherit',flexShrink:0,whiteSpace:'nowrap'}}>{copied?'✓ Copiado!':'Copiar'}</button>
-                </div>
-                <button onClick={()=>setLink('')} style={{fontSize:11,color:T.muted,background:'none',border:'none',cursor:'pointer',fontFamily:'inherit'}}>↺ Gerar novo link</button>
+              <div style={{display:'flex',gap:8,alignItems:'center',background:T.bg,border:'1px solid '+T.border,borderRadius:8,padding:'8px 12px'}}>
+                <span style={{flex:1,fontSize:11,color:T.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{link}</span>
+                <button onClick={copy} style={{background:copied?T.success:T.accentDark,border:'none',borderRadius:6,padding:'4px 12px',color:'#f5f0e8',fontSize:11,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{copied?'Copiado!':'Copiar'}</button>
               </div>
-            )}
             </div>
             {group.type==='casal'&&<div style={{padding:'12px 14px',background:'#fef3c7',border:'1px solid #fde68a',borderRadius:10,fontSize:12,color:'#92400e',lineHeight:1.6}}>Grupo de casal - todas as alteracoes precisam de aprovacao dos dois membros.</div>}
-            <div style={{marginTop:16,paddingTop:16,borderTop:'1px solid '+T.border}}>
-              <div style={{fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1.5,marginBottom:8}}>Entrar num grupo com codigo</div>
-              <EnterInviteCode T={T} onJoin={onJoinGroup}/>
-            </div>
           </>}
           {tab==='membros'&&<>
             <div style={{fontSize:11,color:T.muted,marginBottom:14,lineHeight:1.6}}>Clica em + Admin para promover um membro. Admins tem controlo total.</div>
@@ -974,9 +869,9 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup}){
 }
 
 // ── NEW GROUP MODAL ───────────────────────────────────────────────────────────
-function NewGroupModal({onSave,onClose,onJoinGroup}){
+function NewGroupModal({onSave,onClose}){
   const T = G;
-  const [step,setStep]   = useState(-1); // -1=choose action, 0=choose type, 1=configure
+  const [step,setStep]   = useState(0);
   const [type,setType]   = useState('');
   const [name,setName]   = useState('');
   const [emoji,setEmoji] = useState('💬');
@@ -991,39 +886,12 @@ function NewGroupModal({onSave,onClose,onJoinGroup}){
       <div onClick={e=>e.stopPropagation()} style={{background:T.card,border:'1px solid '+T.border,borderRadius:18,width:420,maxHeight:'88vh',display:'flex',flexDirection:'column',boxShadow:'0 20px 70px rgba(30,24,16,0.25)',overflow:'hidden',fontFamily:'inherit'}}>
         <div style={{padding:'18px 24px 14px',borderBottom:'1px solid '+T.border,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <div>
-            <div style={{fontSize:16,fontWeight:400,color:T.text}}>{step===-1?'Grupos':step===2?'Entrar num grupo':'Novo grupo'}</div>
-            {step>=0&&step!==2&&<div style={{fontSize:11,color:T.muted,marginTop:2}}>Passo {step+1} de 2</div>}
+            <div style={{fontSize:16,fontWeight:400,color:T.text}}>Novo grupo</div>
+            <div style={{fontSize:11,color:T.muted,marginTop:2}}>Passo {step+1} de 2</div>
           </div>
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',fontSize:20,color:T.muted}}>×</button>
         </div>
         <div style={{flex:1,overflowY:'auto',padding:'20px 24px'}}>
-          {step===-1&&(
-            <div>
-              <div style={{fontSize:14,color:T.text,marginBottom:16}}>O que queres fazer?</div>
-              <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                <button onClick={()=>setStep(0)}
-                  style={{display:'flex',gap:14,alignItems:'center',padding:'16px',borderRadius:12,border:'2px solid '+T.border,background:T.bg,cursor:'pointer',textAlign:'left',fontFamily:'inherit',transition:'all 0.15s'}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor=T.accent;e.currentTarget.style.background=T.accentLight;}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.background=T.bg;}}>
-                  <div style={{width:44,height:44,borderRadius:10,background:T.accentLight,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>✚</div>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:500,color:T.text,marginBottom:3}}>Criar novo grupo</div>
-                    <div style={{fontSize:12,color:T.muted}}>Cria um grupo de casal ou colaborativo</div>
-                  </div>
-                </button>
-                <button onClick={()=>setStep(2)}
-                  style={{display:'flex',gap:14,alignItems:'center',padding:'16px',borderRadius:12,border:'2px solid '+T.border,background:T.bg,cursor:'pointer',textAlign:'left',fontFamily:'inherit',transition:'all 0.15s'}}
-                  onMouseEnter={e=>{e.currentTarget.style.borderColor='#5a8a5a';e.currentTarget.style.background='#5a8a5a11';}}
-                  onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.background=T.bg;}}>
-                  <div style={{width:44,height:44,borderRadius:10,background:'#5a8a5a22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>🔗</div>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:500,color:T.text,marginBottom:3}}>Entrar num grupo</div>
-                    <div style={{fontSize:12,color:T.muted}}>Tens um link ou codigo de convite</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
           {step===0&&(
             <div>
               <div style={{fontSize:14,color:T.text,marginBottom:16}}>Que tipo de grupo queres criar?</div>
@@ -1041,12 +909,6 @@ function NewGroupModal({onSave,onClose,onJoinGroup}){
                   </button>
                 ))}
               </div>
-            </div>
-          )}
-          {step===2&&(
-            <div>
-              <div style={{fontSize:14,color:T.text,marginBottom:16}}>Cola o link ou codigo de convite</div>
-              <EnterInviteCode T={T} onJoin={(grp)=>{onJoinGroup&&onJoinGroup(grp);onClose();}}/>
             </div>
           )}
           {step===1&&(
@@ -1096,10 +958,10 @@ function NewGroupModal({onSave,onClose,onJoinGroup}){
             </div>
           )}
         </div>
-        {(step===1||step===2)&&(
+        {step===1&&(
           <div style={{padding:'14px 24px',borderTop:'1px solid '+T.border,display:'flex',gap:10,justifyContent:'flex-end',flexShrink:0}}>
-            <button onClick={()=>step===1?setStep(0):setStep(-1)} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>← Voltar</button>
-            {step===1&&<button onClick={()=>name&&onSave({id:genId()+'',name,emoji,color,type,admins:['tu'],members:['tu'],perms,isDefault:false})} style={{padding:'9px 20px',background:color,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Criar grupo</button>}
+            <button onClick={()=>setStep(0)} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Voltar</button>
+            <button onClick={()=>name&&onSave({id:genId()+'',name,emoji,color,type,admins:['tu'],members:['tu'],perms,isDefault:false})} style={{padding:'9px 20px',background:color,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Criar grupo</button>
           </div>
         )}
       </div>
