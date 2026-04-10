@@ -1841,9 +1841,19 @@ export default function App({ user, onLogout }) {
           if(pe) console.error('Profile create:', pe);
         }
 
+        // Register default groups in user_groups if not already there
+        for(const grp of INIT_GROUPS){
+          await supabase.from('user_groups').upsert({
+            user_id: uid, group_id: grp.id,
+            group_name: grp.name, group_emoji: grp.emoji,
+            group_color: grp.color, group_type: grp.type||'casal',
+            group_admins: JSON.stringify(grp.admins||[uid]),
+            group_perms: JSON.stringify(grp.perms||{})
+          }, {onConflict:'user_id,group_id', ignoreDuplicates:true});
+        }
+
         // Get all group IDs the user belongs to (from user_groups)
         const { data: myGroups } = await supabase.from('user_groups').select('group_id').eq('user_id',uid);
-        // Also include default groups the user created
         const myGroupIds = [...new Set([
           ...INIT_GROUPS.map(g=>g.id),
           ...(myGroups||[]).map(g=>g.group_id)
@@ -1900,35 +1910,39 @@ export default function App({ user, onLogout }) {
           lsSave('proposals', mapped);
         }
 
-        // Group members from user_groups - update groups with real member lists
-        const { data: allMembers } = await supabase.from('user_groups').select('user_id,group_id,group_name,group_emoji,group_color,group_type,group_admins,group_perms');
+        // Load ALL members for ALL my groups and update group state
+        const { data: allMembers } = await supabase.from('user_groups')
+          .select('user_id,group_id,group_name,group_emoji,group_color,group_type,group_admins,group_perms')
+          .in('group_id', myGroupIds);
+
         if(allMembers?.length){
-          setGroups(prevGroups => {
-            const updated = [...prevGroups];
-            allMembers.forEach(m => {
-              const idx = updated.findIndex(g => g.id === m.group_id);
-              if(idx >= 0){
-                const existing = updated[idx];
-                const members = existing.members||[];
-                if(!members.includes(m.user_id)){
-                  updated[idx] = {...existing, members:[...members, m.user_id]};
-                }
-              } else {
-                // Group exists for another member but not locally - add it
-                const admins = m.group_admins||[];
+          // Build a map: groupId -> [user_id, user_id, ...]
+          const memberMap = {};
+          allMembers.forEach(m=>{
+            if(!memberMap[m.group_id]) memberMap[m.group_id]=[];
+            if(!memberMap[m.group_id].includes(m.user_id)) memberMap[m.group_id].push(m.user_id);
+          });
+
+          setGroups(prev=>{
+            const updated = prev.map(grp=>({
+              ...grp,
+              members: memberMap[grp.id] || grp.members || [uid],
+            }));
+            // Add any new groups from user_groups not in local state
+            allMembers.forEach(m=>{
+              if(!updated.find(g=>g.id===m.group_id)){
+                const admins = m.group_admins;
+                const adminArr = Array.isArray(admins)?admins:(typeof admins==='string'?JSON.parse(admins):[]);
                 updated.push({
-                  id: m.group_id,
-                  name: m.group_name||'Grupo',
-                  emoji: m.group_emoji||'👥',
-                  color: m.group_color||'#7c6d52',
-                  type: m.group_type||'colaborativo',
-                  admins: Array.isArray(admins)?admins:[],
-                  members: [m.user_id],
-                  perms: m.group_perms||{},
+                  id:m.group_id, name:m.group_name||'Grupo',
+                  emoji:m.group_emoji||'👥', color:m.group_color||'#7c6d52',
+                  type:m.group_type||'colaborativo',
+                  admins:adminArr, members:memberMap[m.group_id]||[m.user_id],
+                  perms:m.group_perms||{},
                 });
               }
             });
-            lsSave('groups', updated);
+            lsSave('groups',updated);
             return updated;
           });
         }
