@@ -1408,7 +1408,7 @@ function NotesView({ notes, onAdd, onEdit, onDelete }) {
 }
 
 // ── DASHBOARD VIEW ────────────────────────────────────────────────────────────
-function DashboardView({ events, tasks, msgs, notes, profile, proposals, groups, onApprove, onReject }) {
+function DashboardView({ events, tasks, msgs, notes, profile, proposals, groups, onApprove, onReject, currentUserId }) {
   const [detailProposal,setDetailProposal] = useState(null);
   const today       = new Date().toISOString().split('T')[0];
   const todayEvs    = events.filter(e=>e.date===today);
@@ -1523,8 +1523,16 @@ function DashboardView({ events, tasks, msgs, notes, profile, proposals, groups,
                       )}
                     </div>
                     <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-                      <button onClick={()=>{onReject(p.id);setDetailProposal(null);}} style={{padding:'6px 16px',background:'none',border:'1px solid '+T.danger,borderRadius:7,color:T.danger,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>✗ Rejeitar</button>
-                      <button onClick={()=>{onApprove(p.id);setDetailProposal(null);}} style={{padding:'6px 16px',background:T.success,border:'none',borderRadius:7,color:'#fff',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>✓ Aprovar</button>
+                      {p.fromUserId===currentUserId ? (
+                        <div style={{padding:'8px 12px',background:T.accentLight,borderRadius:8,fontSize:12,color:T.muted,fontStyle:'italic'}}>
+                          ⏳ Criaste esta proposta — aguarda que o parceiro aprove
+                        </div>
+                      ) : (
+                        <>
+                          <button onClick={()=>{onReject(p.id);setDetailProposal(null);}} style={{padding:'6px 16px',background:'none',border:'1px solid '+T.danger,borderRadius:7,color:T.danger,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>✗ Rejeitar</button>
+                          <button onClick={()=>{onApprove(p.id);setDetailProposal(null);}} style={{padding:'6px 16px',background:T.success,border:'none',borderRadius:7,color:'#fff',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>✓ Aprovar</button>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1833,27 +1841,41 @@ export default function App({ user, onLogout }) {
           if(pe) console.error('Profile create:', pe);
         }
 
-        // Events
-        const { data: evts, error: evtErr } = await supabase.from('events').select('id,group_id,data').eq('user_id',uid);
+        // Get all group IDs the user belongs to (from user_groups)
+        const { data: myGroups } = await supabase.from('user_groups').select('group_id').eq('user_id',uid);
+        // Also include default groups the user created
+        const myGroupIds = [...new Set([
+          ...INIT_GROUPS.map(g=>g.id),
+          ...(myGroups||[]).map(g=>g.group_id)
+        ])];
+
+        // Events - load for ALL groups I belong to (not just user_id)
+        const { data: evts, error: evtErr } = await supabase.from('events').select('id,group_id,data').in('group_id', myGroupIds);
         if(evtErr) console.error('Events load:', evtErr);
-        else if(evts?.length){
-          const g={}; evts.forEach(e=>{ if(!g[e.group_id])g[e.group_id]=[]; g[e.group_id].push({...e.data,id:e.id}); });
+        else {
+          const g={}; (evts||[]).forEach(e=>{ if(!g[e.group_id])g[e.group_id]=[]; g[e.group_id].push({...e.data,id:e.id}); });
           setEvents(g); lsSave('events',g);
         }
 
-        // Tasks
-        const { data: tks, error: tkErr } = await supabase.from('tasks').select('id,group_id,data').eq('user_id',uid);
+        // Tasks - load for ALL groups
+        const { data: tks, error: tkErr } = await supabase.from('tasks').select('id,group_id,data').in('group_id', myGroupIds);
         if(tkErr) console.error('Tasks load:', tkErr);
-        else if(tks?.length){
-          const g={}; tks.forEach(t=>{ if(!g[t.group_id])g[t.group_id]=[]; g[t.group_id].push({...t.data,id:t.id}); });
+        else {
+          const g={}; (tks||[]).forEach(t=>{ if(!g[t.group_id])g[t.group_id]=[]; g[t.group_id].push({...t.data,id:t.id}); });
           setTasks(g); lsSave('tasks',g);
         }
 
-        // Notes
-        const { data: ns, error: nsErr } = await supabase.from('notes').select('id,group_id,data').eq('user_id',uid);
+        // Notes - load for ALL groups (skip private ones from other users)
+        const { data: ns, error: nsErr } = await supabase.from('notes').select('id,group_id,data,user_id').in('group_id', myGroupIds);
         if(nsErr) console.error('Notes load:', nsErr);
-        else if(ns?.length){
-          const g={}; ns.forEach(n=>{ if(!g[n.group_id])g[n.group_id]=[]; g[n.group_id].push({...n.data,id:n.id}); });
+        else {
+          const g={}; (ns||[]).forEach(n=>{
+            const noteData = {...n.data,id:n.id};
+            // Hide private notes from other users
+            if(noteData.private && n.user_id !== uid) return;
+            if(!g[n.group_id])g[n.group_id]=[];
+            g[n.group_id].push(noteData);
+          });
           setNotes(g); lsSave('notes',g);
         }
 
@@ -1986,7 +2008,7 @@ export default function App({ user, onLogout }) {
   const proposeAction = (type,item,action)=>{
     const original = action==='edit'?(type==='event'?(events[g]||[]).find(x=>x.id===item.id):(tasks[g]||[]).find(x=>x.id===item.id)):null;
     const pid = genId();
-    const proposal = {id:pid,type,item,action,original,groupId:g,from:profile.name||'Tu',status:'pending',createdAt:new Date().toISOString()};
+    const proposal = {id:pid,type,item,action,original,groupId:g,from:profile.name||'Tu',fromUserId:user.id,status:'pending',createdAt:new Date().toISOString()};
     setProps(p=>{const u=[...p,proposal];lsSave('proposals',u);return u;});
     // Save to Supabase so other user sees it
     supabase.from('proposals').insert({
@@ -2038,10 +2060,27 @@ export default function App({ user, onLogout }) {
   const approveProposal = id=>{
     const p=proposals.find(x=>x.id===id);
     if(p){
-      if(p.type==='task'&&p.action==='add'){const nt={...p.item,id:genId()};setTasks(e=>{const u={...e,[p.groupId]:[...(e[p.groupId]||[]),nt]};lsSave('tasks',u);return u;});supabase.from('tasks').insert({id:nt.id,user_id:user.id,group_id:p.groupId,data:nt}).then(r=>r.error&&console.error('approve task:',r.error));}
-      if(p.type==='event'&&p.action==='add'){setEvents(e=>{const u={...e,[p.groupId]:[...(e[p.groupId]||[]).filter(x=>x.id!==p.item.id),p.item]};lsSave('events',u);return u;});supabase.from('events').upsert({id:p.item.id,user_id:user.id,group_id:p.groupId,data:p.item}).then(r=>r.error&&console.error('approve event:',r.error));}
-      if(p.type==='event'&&p.action==='edit'){setEvents(e=>{const u={...e,[p.groupId]:(e[p.groupId]||[]).map(x=>x.id===p.item.id?p.item:x)};lsSave('events',u);return u;});supabase.from('events').update({data:p.item}).eq('id',p.item.id).then(r=>r.error&&console.error('approve edit:',r.error));}
-      if(p.type==='event'&&p.action==='delete'){setEvents(e=>{const u={...e,[p.groupId]:(e[p.groupId]||[]).filter(x=>x.id!==p.item.id)};lsSave('events',u);return u;});supabase.from('events').delete().eq('id',p.item.id).then(r=>r.error&&console.error('approve del:',r.error));}
+      // Use group_id as the "owner" so all members can load it
+      // Use a shared_group_ prefix so the loader finds it for all members
+      const grpUserId = p.fromUserId || user.id; // use original creator's id
+      if(p.type==='task'&&p.action==='add'){
+        const nt={...p.item,id:genId()};
+        setTasks(e=>{const u={...e,[p.groupId]:[...(e[p.groupId]||[]),nt]};lsSave('tasks',u);return u;});
+        // Save with group_id tag so loader can find it - use shared_ prefix
+        supabase.from('tasks').insert({id:nt.id,user_id:grpUserId,group_id:p.groupId,data:nt}).then(r=>r.error&&console.error('approve task:',r.error));
+      }
+      if(p.type==='event'&&p.action==='add'){
+        setEvents(e=>{const u={...e,[p.groupId]:[...(e[p.groupId]||[]).filter(x=>x.id!==p.item.id),p.item]};lsSave('events',u);return u;});
+        supabase.from('events').upsert({id:p.item.id,user_id:grpUserId,group_id:p.groupId,data:p.item}).then(r=>r.error&&console.error('approve event:',r.error));
+      }
+      if(p.type==='event'&&p.action==='edit'){
+        setEvents(e=>{const u={...e,[p.groupId]:(e[p.groupId]||[]).map(x=>x.id===p.item.id?p.item:x)};lsSave('events',u);return u;});
+        supabase.from('events').update({data:p.item}).eq('id',p.item.id).then(r=>r.error&&console.error('approve edit:',r.error));
+      }
+      if(p.type==='event'&&p.action==='delete'){
+        setEvents(e=>{const u={...e,[p.groupId]:(e[p.groupId]||[]).filter(x=>x.id!==p.item.id)};lsSave('events',u);return u;});
+        supabase.from('events').delete().eq('id',p.item.id).then(r=>r.error&&console.error('approve del:',r.error));
+      }
     }
     setProps(ps=>{const u=ps.map(x=>x.id===id?{...x,status:'approved'}:x);lsSave('proposals',u);return u;});
     supabase.from('proposals').update({status:'approved'}).eq('id',id).then(r=>r.error&&console.error('approve:',r.error));
@@ -2063,7 +2102,7 @@ export default function App({ user, onLogout }) {
   G = T;
 
   const renderTab = id => {
-    if(id==='dashboard') return <DashboardView events={events[g]||[]} tasks={tasks[g]||[]} msgs={msgs[g]||[]} notes={notes[g]||[]} profile={profile} proposals={proposals} groups={groups} onNav={setTab} onApprove={approveProposal} onReject={rejectProposal}/>;
+    if(id==='dashboard') return <DashboardView events={events[g]||[]} tasks={tasks[g]||[]} msgs={msgs[g]||[]} notes={notes[g]||[]} profile={profile} proposals={proposals} groups={groups} onNav={setTab} onApprove={approveProposal} onReject={rejectProposal} currentUserId={user.id}/>;
     if(id==='chat')      return <ChatView messages={msgs[g]||[]} onSend={sendMsg} groupColor={curGroup?.color} onReact={addReaction} reactions={reactions} onPin={pinMsg}/>;
     if(id==='tasks')     return <KanbanView tasks={tasks[g]||[]} onAddTask={addTask} onEditTask={editTask} onDeleteTask={deleteTask} onMoveTask={moveTask} onSendToGroup={item=>setSendM({item,type:'task'})} cats={taskCats[g]||[]} onAddCat={name=>setTaskCats(prev=>{const u={...prev,[g]:[...(prev[g]||[]),name]};lsSave('cats',u);return u;})} onRemoveCat={name=>setTaskCats(prev=>{const u={...prev,[g]:(prev[g]||[]).filter(c=>c!==name)};lsSave('cats',u);return u;})}/>;
     if(id==='notes')     return <NotesView notes={notes[g]||[]} onAdd={addNote} onEdit={editNote} onDelete={deleteNote}/>;
