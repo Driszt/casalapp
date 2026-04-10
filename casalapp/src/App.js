@@ -772,6 +772,8 @@ function EnterInviteCode({ T, onJoin }) {
     try {
       const {data:{user}} = await supabase.auth.getUser();
       await supabase.from('user_groups').upsert({user_id:user.id,group_id:found.groupId,group_name:found.name,group_emoji:found.emoji,group_color:found.color,group_type:found.type,group_perms:JSON.stringify(found.perms||{})});
+      // Also ensure profile exists
+      await supabase.from('profiles').upsert({id:user.id,email:user.email,name:user.email?.split('@')[0]},{onConflict:'id',ignoreDuplicates:true});
       await supabase.from('invites').update({used_by:user.id,used_at:new Date().toISOString()}).eq('id',found.id);
       if(onJoin) onJoin({id:found.groupId,name:found.name,emoji:found.emoji,color:found.color||'#7c6d52',type:found.type||'colaborativo',admins:[],members:['tu'],perms:found.perms||{}});
       setCode(''); setFound(null); setStatus('');
@@ -829,7 +831,14 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
           supabase.from('profiles').select('id,name,email').in('id', mbs)
             .then(({data:p})=>{
               const map = {};
-              (p||[]).forEach(pr=>{ map[pr.id]={name:pr.name||pr.email?.split('@')[0]||'Utilizador', email:pr.email}; });
+              // First set fallback from user_groups data
+              (data||[]).forEach(m=>{ map[m.user_id]={name:'', email:''}; });
+              // Then override with profiles data
+              (p||[]).forEach(pr=>{
+                const email = pr.email||'';
+                const name = pr.name||email.split('@')[0]||'Utilizador';
+                map[pr.id]={name, email};
+              });
               setProfiles(map);
             });
         }
@@ -855,7 +864,7 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
           <div style={{textAlign:'center',color:T.muted,fontSize:13,padding:20}}>Sem membros</div>
         ) : members.map(uid=>{
           const p = profiles[uid];
-          const name = p?.name || 'Utilizador';
+          const name = p?.name || (p?.email ? p.email.split('@')[0] : uid.slice(0,8));
           const email = p?.email || '';
           const admins = group.admins||[];
           const isAdmin = admins.includes(uid);
