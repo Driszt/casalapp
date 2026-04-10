@@ -1841,57 +1841,37 @@ export default function App({ user, onLogout }) {
           if(pe) console.error('Profile create:', pe);
         }
 
-        // Register default groups in user_groups if not already there
-        dbg('A registar grupos no Supabase...');
-        const userName = user.email?.split('@')[0]||'user';
-        for(const grp of INIT_GROUPS){
-          const {error:ugErr} = await supabase.from('user_groups').upsert({
-            user_id: uid, group_id: grp.id,
-            group_name: grp.name, group_emoji: grp.emoji,
-            group_color: grp.color, group_type: grp.type||'casal',
-            group_admins: JSON.stringify([uid]),
-            group_perms: JSON.stringify(grp.perms||{})
-          }, {onConflict:'user_id,group_id', ignoreDuplicates:true});
-          if(ugErr) dbg('ERRO grupo '+grp.id+': '+ugErr.message);
-          else dbg('Grupo '+grp.id+' registado OK');
-        }
-
-        // Get all group IDs the user belongs to (from user_groups)
+        // Default groups are local only - NOT registered in user_groups
+        // Only custom groups (created/joined) go in user_groups
+        // Get custom groups the user belongs to (from user_groups)
         const { data: myGroups } = await supabase.from('user_groups').select('group_id').eq('user_id',uid);
-        const myGroupIds = [...new Set([
-          ...INIT_GROUPS.map(g=>g.id),
-          ...(myGroups||[]).map(g=>g.group_id)
-        ])];
+        const customGroupIds = (myGroups||[]).map(g=>g.group_id);
+        // For loading data: default groups load by user_id, custom groups load by group_id
+        const myGroupIds = customGroupIds;
+        const defaultGroupIds = INIT_GROUPS.map(g=>g.id);
 
-        // Events - load for ALL groups I belong to (not just user_id)
-        const { data: evts, error: evtErr } = await supabase.from('events').select('id,group_id,data').in('group_id', myGroupIds);
-        if(evtErr) console.error('Events load:', evtErr);
-        else {
-          const g={}; (evts||[]).forEach(e=>{ if(!g[e.group_id])g[e.group_id]=[]; g[e.group_id].push({...e.data,id:e.id}); });
-          setEvents(g); lsSave('events',g);
-        }
+        // Events: default groups = own data only; custom groups = all members' data
+        const evtQuery1 = defaultGroupIds.length ? supabase.from('events').select('id,group_id,data').eq('user_id',uid).in('group_id',defaultGroupIds) : Promise.resolve({data:[]});
+        const evtQuery2 = customGroupIds.length  ? supabase.from('events').select('id,group_id,data').in('group_id',customGroupIds) : Promise.resolve({data:[]});
+        const [evtR1,evtR2] = await Promise.all([evtQuery1,evtQuery2]);
+        if(evtR1.error) console.error('Events load1:',evtR1.error);
+        if(evtR2.error) console.error('Events load2:',evtR2.error);
+        const evts = [...(evtR1.data||[]),...(evtR2.data||[])];
+        if(evts.length){ const g={}; evts.forEach(e=>{ if(!g[e.group_id])g[e.group_id]=[]; g[e.group_id].push({...e.data,id:e.id}); }); setEvents(g); lsSave('events',g); }
 
-        // Tasks - load for ALL groups
-        const { data: tks, error: tkErr } = await supabase.from('tasks').select('id,group_id,data').in('group_id', myGroupIds);
-        if(tkErr) console.error('Tasks load:', tkErr);
-        else {
-          const g={}; (tks||[]).forEach(t=>{ if(!g[t.group_id])g[t.group_id]=[]; g[t.group_id].push({...t.data,id:t.id}); });
-          setTasks(g); lsSave('tasks',g);
-        }
+        // Tasks
+        const tkQ1 = defaultGroupIds.length ? supabase.from('tasks').select('id,group_id,data').eq('user_id',uid).in('group_id',defaultGroupIds) : Promise.resolve({data:[]});
+        const tkQ2 = customGroupIds.length  ? supabase.from('tasks').select('id,group_id,data').in('group_id',customGroupIds) : Promise.resolve({data:[]});
+        const [tkR1,tkR2] = await Promise.all([tkQ1,tkQ2]);
+        const tks = [...(tkR1.data||[]),...(tkR2.data||[])];
+        if(tks.length){ const g={}; tks.forEach(t=>{ if(!g[t.group_id])g[t.group_id]=[]; g[t.group_id].push({...t.data,id:t.id}); }); setTasks(g); lsSave('tasks',g); }
 
-        // Notes - load for ALL groups (skip private ones from other users)
-        const { data: ns, error: nsErr } = await supabase.from('notes').select('id,group_id,data,user_id').in('group_id', myGroupIds);
-        if(nsErr) console.error('Notes load:', nsErr);
-        else {
-          const g={}; (ns||[]).forEach(n=>{
-            const noteData = {...n.data,id:n.id};
-            // Hide private notes from other users
-            if(noteData.private && n.user_id !== uid) return;
-            if(!g[n.group_id])g[n.group_id]=[];
-            g[n.group_id].push(noteData);
-          });
-          setNotes(g); lsSave('notes',g);
-        }
+        // Notes
+        const nsQ1 = defaultGroupIds.length ? supabase.from('notes').select('id,group_id,data,user_id').eq('user_id',uid).in('group_id',defaultGroupIds) : Promise.resolve({data:[]});
+        const nsQ2 = customGroupIds.length  ? supabase.from('notes').select('id,group_id,data,user_id').in('group_id',customGroupIds) : Promise.resolve({data:[]});
+        const [nsR1,nsR2] = await Promise.all([nsQ1,nsQ2]);
+        const ns = [...(nsR1.data||[]),...(nsR2.data||[])];
+        if(ns.length){ const g={}; ns.forEach(n=>{ const nd={...n.data,id:n.id}; if(nd.private&&n.user_id!==uid)return; if(!g[n.group_id])g[n.group_id]=[]; g[n.group_id].push(nd); }); setNotes(g); lsSave('notes',g); }
 
         // Messages (real-time chat between users)
         const { data: ms, error: msErr } = await supabase.from('messages').select('*').order('created_at',{ascending:true}).limit(200);
@@ -1918,7 +1898,7 @@ export default function App({ user, onLogout }) {
         dbg('A carregar membros...');
         const { data: allMembers } = await supabase.from('user_groups')
           .select('user_id,group_id,group_name,group_emoji,group_color,group_type,group_admins,group_perms')
-          .in('group_id', myGroupIds);
+          .in('group_id', myGroupIds.length ? myGroupIds : ['__none__']);
 
         dbg('Membros encontrados: '+(allMembers?.length||0));
         if(allMembers?.length){
