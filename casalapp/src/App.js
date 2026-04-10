@@ -1842,14 +1842,16 @@ export default function App({ user, onLogout }) {
         }
 
         // Register default groups in user_groups if not already there
+        const userName = user.email?.split('@')[0]||'user';
         for(const grp of INIT_GROUPS){
-          await supabase.from('user_groups').upsert({
+          const {error:ugErr} = await supabase.from('user_groups').upsert({
             user_id: uid, group_id: grp.id,
             group_name: grp.name, group_emoji: grp.emoji,
             group_color: grp.color, group_type: grp.type||'casal',
-            group_admins: JSON.stringify(grp.admins||[uid]),
+            group_admins: JSON.stringify([uid]),
             group_perms: JSON.stringify(grp.perms||{})
           }, {onConflict:'user_id,group_id', ignoreDuplicates:true});
+          if(ugErr) console.error('Register group:', ugErr);
         }
 
         // Get all group IDs the user belongs to (from user_groups)
@@ -1966,19 +1968,88 @@ export default function App({ user, onLogout }) {
     return ()=>supabase.removeChannel(ch);
   },[user,dbReady]);
 
-  // ── REALTIME PROPOSALS ───────────────────────────────────────────────────
+  // ── REALTIME: ALL GROUP DATA ─────────────────────────────────────────────
   useEffect(()=>{
     if(!user||!dbReady) return;
-    const ch = supabase.channel('proposals_rt')
+
+    const ch = supabase.channel('group_realtime')
+
+      // ── EVENTS ──────────────────────────────────────────────────────────────
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'events'},p=>{
+        if(p.new.user_id===user.id) return; // already in local state
+        setEvents(prev=>{const u={...prev,[p.new.group_id]:[...(prev[p.new.group_id]||[]).filter(x=>x.id!==p.new.id),{...p.new.data,id:p.new.id}]};lsSave('events',u);return u;});
+      })
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'events'},p=>{
+        if(p.new.user_id===user.id) return;
+        setEvents(prev=>{const u={...prev,[p.new.group_id]:(prev[p.new.group_id]||[]).map(x=>x.id===p.new.id?{...p.new.data,id:p.new.id}:x)};lsSave('events',u);return u;});
+      })
+      .on('postgres_changes',{event:'DELETE',schema:'public',table:'events'},p=>{
+        setEvents(prev=>{
+          const updated={};
+          Object.entries(prev).forEach(([gid,evts])=>{updated[gid]=evts.filter(x=>x.id!==p.old.id);});
+          lsSave('events',updated); return updated;
+        });
+      })
+
+      // ── TASKS ───────────────────────────────────────────────────────────────
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'tasks'},p=>{
+        if(p.new.user_id===user.id) return;
+        setTasks(prev=>{const u={...prev,[p.new.group_id]:[...(prev[p.new.group_id]||[]),{...p.new.data,id:p.new.id}]};lsSave('tasks',u);return u;});
+      })
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'tasks'},p=>{
+        if(p.new.user_id===user.id) return;
+        setTasks(prev=>{const u={...prev,[p.new.group_id]:(prev[p.new.group_id]||[]).map(x=>x.id===p.new.id?{...p.new.data,id:p.new.id}:x)};lsSave('tasks',u);return u;});
+      })
+      .on('postgres_changes',{event:'DELETE',schema:'public',table:'tasks'},p=>{
+        setTasks(prev=>{
+          const updated={};
+          Object.entries(prev).forEach(([gid,tks])=>{updated[gid]=tks.filter(x=>x.id!==p.old.id);});
+          lsSave('tasks',updated); return updated;
+        });
+      })
+
+      // ── NOTES ───────────────────────────────────────────────────────────────
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'notes'},p=>{
+        if(p.new.user_id===user.id) return;
+        const noteData={...p.new.data,id:p.new.id};
+        if(noteData.private) return; // don't show private notes from others
+        setNotes(prev=>{const u={...prev,[p.new.group_id]:[...(prev[p.new.group_id]||[]),noteData]};lsSave('notes',u);return u;});
+      })
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'notes'},p=>{
+        if(p.new.user_id===user.id) return;
+        const noteData={...p.new.data,id:p.new.id};
+        if(noteData.private) return;
+        setNotes(prev=>{const u={...prev,[p.new.group_id]:(prev[p.new.group_id]||[]).map(x=>x.id===p.new.id?noteData:x)};lsSave('notes',u);return u;});
+      })
+      .on('postgres_changes',{event:'DELETE',schema:'public',table:'notes'},p=>{
+        setNotes(prev=>{
+          const updated={};
+          Object.entries(prev).forEach(([gid,ns])=>{updated[gid]=ns.filter(x=>x.id!==p.old.id);});
+          lsSave('notes',updated); return updated;
+        });
+      })
+
+      // ── PROPOSALS ───────────────────────────────────────────────────────────
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'proposals'},p=>{
         if(p.new.from_user_id===user.id) return;
-        const pr={id:p.new.id,type:p.new.type,action:p.new.action_type,item:p.new.item,original:p.new.original,groupId:p.new.group_id,from:p.new.from_name||'Parceiro',status:p.new.status,createdAt:p.new.created_at};
+        const pr={id:p.new.id,type:p.new.type,action:p.new.action_type,item:p.new.item,original:p.new.original,groupId:p.new.group_id,from:p.new.from_name||'Parceiro',fromUserId:p.new.from_user_id,status:p.new.status,createdAt:p.new.created_at};
         setProps(prev=>{const u=[...prev.filter(x=>x.id!==p.new.id),pr];lsSave('proposals',u);return u;});
       })
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'proposals'},p=>{
         setProps(prev=>{const u=prev.map(x=>x.id===p.new.id?{...x,status:p.new.status}:x);lsSave('proposals',u);return u;});
       })
-      .subscribe();
+
+      // ── MEMBERS joining ──────────────────────────────────────────────────────
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'user_groups'},p=>{
+        if(p.new.user_id===user.id) return;
+        setGroups(prev=>prev.map(g=>g.id===p.new.group_id?{...g,members:[...(g.members||[]),p.new.user_id]}:g));
+      })
+
+      .subscribe((status)=>{
+        if(status==='SUBSCRIBED') console.log('Realtime connected');
+        if(status==='CHANNEL_ERROR') console.error('Realtime error');
+      });
+
     return ()=>supabase.removeChannel(ch);
   },[user,dbReady]);
 
