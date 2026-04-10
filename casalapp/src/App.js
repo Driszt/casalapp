@@ -809,7 +809,101 @@ function EnterInviteCode({ T, onJoin }) {
 }
 
 
-function GroupModal({group,onClose,onUpdate,onJoinGroup}){
+// ── MEMBERS TAB ───────────────────────────────────────────────────────────────
+function MembersTab({ group, T, color, onUpdate, onDelete }) {
+  const [members, setMembers]   = useState([]);
+  const [profiles, setProfiles] = useState({});
+  const [loading, setLoading]   = useState(true);
+  const [confirmDel, setConfDel]= useState(false);
+
+  useEffect(()=>{
+    if(!group.id) return;
+    // Load members from user_groups
+    supabase.from('user_groups').select('user_id,group_id,group_admins')
+      .eq('group_id', group.id)
+      .then(({data})=>{
+        const mbs = (data||[]).map(r=>r.user_id);
+        setMembers(mbs);
+        // Load profiles for each member
+        if(mbs.length){
+          supabase.from('profiles').select('id,name,email').in('id', mbs)
+            .then(({data:p})=>{
+              const map = {};
+              (p||[]).forEach(pr=>{ map[pr.id]={name:pr.name||pr.email?.split('@')[0]||'Utilizador', email:pr.email}; });
+              setProfiles(map);
+            });
+        }
+        setLoading(false);
+      });
+  },[group.id]);
+
+  const deleteGroup = async () => {
+    // Remove from user_groups
+    await supabase.from('user_groups').delete().eq('group_id', group.id);
+    onDelete && onDelete(group.id);
+  };
+
+  return (
+    <div>
+      <div style={{fontSize:11,color:T.muted,marginBottom:14,lineHeight:1.6}}>
+        {loading ? 'A carregar membros...' : members.length + ' membro' + (members.length!==1?'s':'')}
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+        {loading ? (
+          <div style={{textAlign:'center',color:T.muted,fontSize:13,padding:20}}>⏳</div>
+        ) : members.length===0 ? (
+          <div style={{textAlign:'center',color:T.muted,fontSize:13,padding:20}}>Sem membros</div>
+        ) : members.map(uid=>{
+          const p = profiles[uid];
+          const name = p?.name || 'Utilizador';
+          const email = p?.email || '';
+          const admins = group.admins||[];
+          const isAdmin = admins.includes(uid);
+          const initials = name.slice(0,2).toUpperCase();
+          return (
+            <div key={uid} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:T.bg,borderRadius:10,border:'1px solid '+(isAdmin?color+'44':T.border)}}>
+              <div style={{width:34,height:34,borderRadius:'50%',background:isAdmin?color+'33':T.accentLight,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:600,color:isAdmin?color:T.muted,flexShrink:0}}>{initials}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,color:T.text,fontWeight:500}}>{name}</div>
+                <div style={{fontSize:10,color:T.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{email}</div>
+              </div>
+              <div style={{fontSize:10,color:isAdmin?color:T.muted,background:isAdmin?color+'11':T.accentLight,padding:'2px 8px',borderRadius:20}}>{isAdmin?'⭐ Admin':'Membro'}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Delete group */}
+      {!group.isDefault && (
+        <div style={{marginTop:20,paddingTop:16,borderTop:'1px solid '+T.border}}>
+          {!confirmDel ? (
+            <button onClick={()=>setConfDel(true)}
+              style={{width:'100%',padding:'10px',background:'none',border:'1px solid '+T.danger,borderRadius:9,color:T.danger,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
+              🗑 Eliminar grupo
+            </button>
+          ) : (
+            <div style={{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:9,padding:'12px 14px'}}>
+              <div style={{fontSize:13,color:'#991b1b',marginBottom:10,fontWeight:500}}>Tens a certeza? Esta ação não pode ser desfeita.</div>
+              <div style={{display:'flex',gap:8}}>
+                <button onClick={()=>setConfDel(false)}
+                  style={{flex:1,padding:'8px',background:'none',border:'1px solid #fca5a5',borderRadius:7,color:'#991b1b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+                  Cancelar
+                </button>
+                <button onClick={deleteGroup}
+                  style={{flex:1,padding:'8px',background:'#dc2626',border:'none',borderRadius:7,color:'#fff',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+function GroupModal({group,onClose,onUpdate,onJoinGroup,onDelete}){
   const T = G;
   const [tab,setTab]     = useState('info');
   const [color,setColor] = useState(group.color||'#7c6d52');
@@ -902,26 +996,7 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup}){
 
           </>}
           {tab==='membros'&&<>
-            <div style={{fontSize:11,color:T.muted,marginBottom:14,lineHeight:1.6}}>Clica em + Admin para promover um membro. Admins tem controlo total.</div>
-            <div style={{display:'flex',flexDirection:'column',gap:8}}>
-              {(group.members||[]).map(m=>{
-                const isMAdmin=(group.admins||[]).includes(m);
-                const mName=m==='tu'?'Tu':m==='ela'?'Ela':m==='mae'?'Mae':'Pedro';
-                const mEmoji=m==='tu'?'🧔':m==='ela'?'👩':m==='mae'?'👵':'🧑';
-                return(
-                  <div key={m} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:T.bg,borderRadius:10,border:'1px solid '+(isMAdmin?color+'44':T.border)}}>
-                    <div style={{width:30,height:30,borderRadius:'50%',background:isMAdmin?color+'22':T.accentLight,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,flexShrink:0}}>{mEmoji}</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:13,color:T.text}}>{mName}</div>
-                      <div style={{fontSize:10,color:isMAdmin?color:T.muted}}>{isMAdmin?'⭐ Admin':'Membro'}</div>
-                    </div>
-                    {m!==me&&isAdmin&&(
-                      <button onClick={()=>{ const na=isMAdmin?(group.admins||[]).filter(a=>a!==m):[...(group.admins||[]),m]; onUpdate&&onUpdate({...group,admins:na}); }} style={{fontSize:11,padding:'4px 10px',borderRadius:6,border:'1px solid '+(isMAdmin?T.danger:color),color:isMAdmin?T.danger:color,background:'none',cursor:'pointer',fontFamily:'inherit'}}>{isMAdmin?'Remover':'+ Admin'}</button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <MembersTab group={group} T={T} color={color} onUpdate={onUpdate} onDelete={onDelete}/>
           </>}
           {tab==='perms'&&<>
             <div style={{fontSize:11,color:T.muted,marginBottom:14,lineHeight:1.6}}>Permissoes dos membros nao-admin neste grupo.</div>
@@ -2125,6 +2200,15 @@ export default function App({ user, onLogout }) {
   const addNote     = n =>{ setNotes(ns=>{const u={...ns,[g]:[...(ns[g]||[]),n]};saveNotesLS(u);return u;}); supabase.from('notes').insert({id:n.id,user_id:user.id,group_id:g,data:n}).then(r=>r.error&&console.error('save note:',r.error)); };
   const editNote    = n =>{ setNotes(ns=>{const u={...ns,[g]:(ns[g]||[]).map(x=>x.id===n.id?n:x)};saveNotesLS(u);return u;}); supabase.from('notes').update({data:n}).eq('id',n.id).then(r=>r.error&&console.error('edit note:',r.error)); };
   const deleteNote  = id=>{ setNotes(ns=>{const u={...ns,[g]:(ns[g]||[]).filter(x=>x.id!==id)};saveNotesLS(u);return u;}); supabase.from('notes').delete().eq('id',id).then(r=>r.error&&console.error('del note:',r.error)); };
+  const deleteGroup  = async (gid)=>{
+    setGroups(gs=>{const u=gs.filter(g=>g.id!==gid);lsSave('groups',u);return u;});
+    setEvents(e=>{const u={...e};delete u[gid];lsSave('events',u);return u;});
+    setTasks(t=>{const u={...t};delete u[gid];lsSave('tasks',u);return u;});
+    setNotes(n=>{const u={...n};delete u[gid];lsSave('notes',u);return u;});
+    setMsgs(m=>{const u={...m};delete u[gid];lsSave('msgs',u);return u;});
+    if(g===gid) setAG(INIT_GROUPS[0]?.id||'casal');
+    setGM(null);
+  };
   const joinGroup   = grp=>{ setGroups(gs=>{if(gs.find(x=>x.id===grp.id))return gs;const u=[...gs,grp];lsSave('groups',u);return u;}); setEvents(e=>({...e,[grp.id]:e[grp.id]||[]})); setTasks(t=>({...t,[grp.id]:t[grp.id]||[]})); setMsgs(m=>({...m,[grp.id]:m[grp.id]||[]})); setNotes(n=>({...n,[grp.id]:n[grp.id]||[]})); setTaskCats(tc=>({...tc,[grp.id]:tc[grp.id]||[]})); setAG(grp.id); };
   const addGroup    = grp=>{setGroups(gs=>{const u=[...gs,grp];lsSave('groups',u);return u;});setEvents(e=>({...e,[grp.id]:[]}));setTasks(t=>({...t,[grp.id]:[]}));setMsgs(m=>({...m,[grp.id]:[]}));setNotes(n=>({...n,[grp.id]:[]}));setTaskCats(tc=>({...tc,[grp.id]:[]}));setNGM(false);setAG(grp.id);};
   const approveProposal = id=>{
@@ -2373,7 +2457,7 @@ export default function App({ user, onLogout }) {
       {searchOpen&&<SearchModal events={events[g]||[]} tasks={tasks[g]||[]} msgs={msgs[g]||[]} notes={notes[g]||[]} onClose={()=>setSearch(false)} onNav={id=>{setTab(id);setSearch(false);}}/>}
       {shortcutsModal&&<ShortcutsModal shortcuts={shortcuts} onSave={sh=>{setShortcuts(sh);setSM(false);}} onClose={()=>setSM(false)}/>}
       {accountModal&&<AccountModal profile={profile} onSave={p=>{setProfile(p);setAM(false);}} onClose={()=>setAM(false)}/>}
-      {groupModal&&<GroupModal group={groupModal} onClose={()=>setGM(null)} onUpdate={gr=>{setGroups(gs=>gs.map(g=>g.id===gr.id?gr:g));setGM(gr);}} onJoinGroup={grp=>{joinGroup(grp);setGM(null);}}/>}
+      {groupModal&&<GroupModal group={groupModal} onClose={()=>setGM(null)} onUpdate={gr=>{setGroups(gs=>gs.map(g=>g.id===gr.id?gr:g));setGM(gr);}} onJoinGroup={grp=>{joinGroup(grp);setGM(null);}} onDelete={deleteGroup}/>}
       {newGroupModal&&<NewGroupModal onSave={addGroup} onClose={()=>setNGM(false)} onJoinGroup={grp=>{joinGroup(grp);setNGM(false);}}/>}
       {sendModal&&<SendToGroupModal item={sendModal.item} type={sendModal.type} groups={groups} onClose={()=>setSendM(null)} onSend={(gid,msg)=>{setProps(p=>[...p,{id:genId(),type:sendModal.type,item:sendModal.item,groupId:gid,msg,from:profile.name||'Tu',status:'pending'}]);setSendM(null);}}/>}
     </div>
