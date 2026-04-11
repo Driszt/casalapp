@@ -818,7 +818,10 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
 
   useEffect(()=>{
     if(!group.id) return;
-    // Load members from user_groups
+    setLoading(true);
+    setMembers([]);
+    setProfiles({});
+    // Load members from user_groups (always fresh)
     supabase.from('user_groups').select('user_id,group_id,group_admins')
       .eq('group_id', group.id)
       .then(({data})=>{
@@ -2098,11 +2101,15 @@ export default function App({ user, onLogout }) {
         setProps(prev=>{const u=prev.map(x=>x.id===p.new.id?{...x,status:p.new.status}:x);lsSave('proposals',u);return u;});
       })
 
-      // ── MEMBERS joining ──────────────────────────────────────────────────────
+      // ── MEMBERS joining/leaving ────────────────────────────────────────────────
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'user_groups'},p=>{
         if(p.new.user_id===user.id) return;
-        setGroups(prev=>prev.map(g=>g.id===p.new.group_id?{...g,members:[...(g.members||[]),p.new.user_id]}:g));
+        setGroups(prev=>{const u=prev.map(g=>g.id===p.new.group_id?{...g,members:[...new Set([...(g.members||[]),p.new.user_id])]}:g);lsSave('groups',u);return u;});
       })
+      .on('postgres_changes',{event:'DELETE',schema:'public',table:'user_groups'},p=>{
+        setGroups(prev=>{const u=prev.map(g=>g.id===p.old.group_id?{...g,members:(g.members||[]).filter(m=>m!==p.old.user_id)}:g);lsSave('groups',u);return u;});
+      })
+
 
       .subscribe((status)=>{
         if(status==='SUBSCRIBED') console.log('Realtime connected');
