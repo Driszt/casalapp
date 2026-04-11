@@ -865,7 +865,6 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
               <div style={{width:34,height:34,borderRadius:'50%',background:isAdmin?color+'33':T.accentLight,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:600,color:isAdmin?color:T.muted,flexShrink:0}}>{initials}</div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:13,color:T.text,fontWeight:500}}>{name}</div>
-                <div style={{fontSize:10,color:T.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{email}</div>
               </div>
               <div style={{fontSize:10,color:isAdmin?color:T.muted,background:isAdmin?color+'11':T.accentLight,padding:'2px 8px',borderRadius:20}}>{isAdmin?'⭐ Admin':'Membro'}</div>
             </div>
@@ -1865,7 +1864,7 @@ export default function App({ user, onLogout }) {
   const [reactions,setReact]    = useState({});
   const [proposals,setProps]    = useState([]);
   const [taskCats,setTaskCats]  = useState({casal:['pessoal','casa','trabalho'],cozinha:['receitas','compras'],oracao:[]});
-  const [profile,setProfile]    = useState({name:user?.email?.split('@')[0]||'Tu',photo:null,notif:true});
+  const [profile,setProfile]    = useState({name:user?.email?.split('@')[0]||'Tu',email:user?.email||'',photo:null,notif:true});
   const [darkMode,setDarkMode]  = useState(false);
   const [searchOpen,setSearch]  = useState(false);
   const [shortcutsModal,setSM]  = useState(false);
@@ -1909,7 +1908,7 @@ export default function App({ user, onLogout }) {
         // Profile
         const { data: prof, error: profErr } = await supabase.from('profiles').select('*').eq('id',uid).single();
         if(profErr && profErr.code !== 'PGRST116') console.error('Profile load:', profErr);
-        if(prof){ setProfile(p=>({...p,name:prof.name||p.name,photo:prof.photo||null})); }
+        if(prof){ setProfile(p=>({...p,name:prof.name||p.name,email:prof.email||user.email||p.email,photo:prof.photo||null})); }
         else {
           setOnboard(true);
           const {error:pe} = await supabase.from('profiles').insert({id:uid,email:user.email,name:user.email.split('@')[0]});
