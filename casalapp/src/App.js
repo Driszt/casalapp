@@ -653,6 +653,8 @@ function ChatView({messages,onSend,groupColor,onReact,reactions,onPin}){
 }
 
 // ── ACCOUNT SETTINGS MODAL ────────────────────────────────────────────────────
+function AccountSection({title,children}){const T=G;return(<div style={{marginBottom:22}}><div style={{fontSize:10,fontWeight:500,color:T.accentDark,textTransform:'uppercase',letterSpacing:1.5,marginBottom:12,paddingBottom:6,borderBottom:'1px solid '+T.border}}>{title}</div><div style={{display:'flex',flexDirection:'column',gap:12}}>{children}</div></div>);}
+function AccountToggle({label,sub,value,onChange}){const T=G;return(<div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><div><div style={{fontSize:13,color:T.text}}>{label}</div>{sub&&<div style={{fontSize:11,color:T.muted,marginTop:2}}>{sub}</div>}</div><button onClick={()=>onChange(!value)} style={{width:36,height:20,borderRadius:10,background:value?T.accentDark:T.border,border:'none',cursor:'pointer',position:'relative',transition:'background 0.2s',flexShrink:0}}><div style={{position:'absolute',top:2,left:value?17:2,width:16,height:16,borderRadius:'50%',background:'#fff',transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.15)'}}/></button></div>);}
 function AccountModal({profile,onSave,onClose}){
   const T = G;
   const [name,setName]=useState(profile.name||'');
@@ -666,8 +668,6 @@ function AccountModal({profile,onSave,onClose}){
   const fileRef=useRef(null);
   const handlePhoto=e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>setPhoto(ev.target.result);reader.readAsDataURL(file);};
   const inp={width:'100%',boxSizing:'border-box',border:'1px solid '+T.border,borderRadius:7,padding:'9px 12px',fontSize:13,color:T.text,background:T.bg,outline:'none',fontFamily:'inherit'};
-  function Section({title,children}){return(<div style={{marginBottom:22}}><div style={{fontSize:10,fontWeight:500,color:T.accentDark,textTransform:'uppercase',letterSpacing:1.5,marginBottom:12,paddingBottom:6,borderBottom:'1px solid '+T.border}}>{title}</div><div style={{display:'flex',flexDirection:'column',gap:12}}>{children}</div></div>);}
-  function Toggle({label,sub,value,onChange}){return(<div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><div><div style={{fontSize:13,color:T.text}}>{label}</div>{sub&&<div style={{fontSize:11,color:T.muted,marginTop:2}}>{sub}</div>}</div><button onClick={()=>onChange(!value)} style={{width:36,height:20,borderRadius:10,background:value?T.accentDark:T.border,border:'none',cursor:'pointer',position:'relative',transition:'background 0.2s',flexShrink:0}}><div style={{position:'absolute',top:2,left:value?17:2,width:16,height:16,borderRadius:'50%',background:'#fff',transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.15)'}}/></button></div>);}
   return(
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(30,24,16,0.45)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div onClick={e=>e.stopPropagation()} style={{background:T.card,border:'1px solid '+T.border,borderRadius:18,width:440,maxHeight:'88vh',display:'flex',flexDirection:'column',boxShadow:'0 20px 70px rgba(30,24,16,0.22)',fontFamily:'inherit',overflow:'hidden'}}>
@@ -676,7 +676,7 @@ function AccountModal({profile,onSave,onClose}){
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer'}}><Icon name="close" size={16} color={T.muted}/></button>
         </div>
         <div style={{flex:1,overflowY:'auto',padding:'20px 24px'}}>
-          <Section title="Perfil">
+          <AccountSection title="Perfil">
             <div style={{display:'flex',alignItems:'center',gap:16,padding:'14px',background:T.bg,borderRadius:12,border:'1px solid '+T.border}}>
               <div style={{position:'relative',flexShrink:0}}>
                 <div style={{width:60,height:60,borderRadius:'50%',background:T.accentLight,border:'2px solid '+T.border,display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,overflow:'hidden'}}>
@@ -695,8 +695,8 @@ function AccountModal({profile,onSave,onClose}){
             </div>
             <div><div style={{fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Nome de exibição</div><input value={name} onChange={e=>setName(e.target.value)} style={inp} placeholder="Como queres aparecer nos grupos"/></div>
             <div><div style={{fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Email</div><input value={email} readOnly style={{...inp,color:T.muted,background:T.bg+'80',cursor:'default'}}/><div style={{fontSize:11,color:T.muted,marginTop:4}}>O email não pode ser alterado aqui.</div></div>
-          </Section>
-          <Section title="Disponibilidade">
+          </AccountSection>
+          <AccountSection title="Disponibilidade">
             <div><div style={{fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>Estado padrão ao entrar</div>
               <div style={{display:'flex',gap:8}}>
                 {[['disponivel','✅','Disponível'],['ocupado','🔴','Ocupado'],['talvez','🟡','Talvez']].map(([v,ic,l])=>(
@@ -706,23 +706,23 @@ function AccountModal({profile,onSave,onClose}){
                 ))}
               </div>
             </div>
-          </Section>
-          <Section title="Notificações">
-            <Toggle label="Ativar notificações" sub="Receber alertas neste dispositivo" value={notif} onChange={setNotif}/>
+          </AccountSection>
+          <AccountSection title="Notificações">
+            <AccountToggle label="Ativar notificações" sub="Receber alertas neste dispositivo" value={notif} onChange={setNotif}/>
             {notif&&<div style={{paddingLeft:12,borderLeft:'2px solid '+T.border,display:'flex',flexDirection:'column',gap:10}}>
-              <Toggle label="Eventos e datas" sub="Lembretes de eventos no calendário" value={notifEvents} onChange={setNotifEvents}/>
-              <Toggle label="Tarefas" sub="Alertas de novas tarefas partilhadas" value={notifTasks} onChange={setNotifTasks}/>
-              <Toggle label="Chat" sub="Novas mensagens nos grupos" value={notifChat} onChange={setNotifChat}/>
+              <AccountToggle label="Eventos e datas" sub="Lembretes de eventos no calendário" value={notifEvents} onChange={setNotifEvents}/>
+              <AccountToggle label="Tarefas" sub="Alertas de novas tarefas partilhadas" value={notifTasks} onChange={setNotifTasks}/>
+              <AccountToggle label="Chat" sub="Novas mensagens nos grupos" value={notifChat} onChange={setNotifChat}/>
             </div>}
-          </Section>
-          <Section title="Privacidade e segurança">
+          </AccountSection>
+          <AccountSection title="Privacidade e segurança">
             <div style={{padding:'12px',background:T.bg,borderRadius:10,border:'1px solid '+T.border}}>
               <div style={{fontSize:13,color:T.text,marginBottom:4}}>Dados encriptados</div>
               <div style={{fontSize:11,color:T.muted,lineHeight:1.6}}>As tuas mensagens, tarefas e eventos são armazenados de forma segura. Apenas os membros dos teus grupos têm acesso ao conteúdo.</div>
             </div>
             <button style={{padding:'9px 14px',background:'none',border:'1px solid '+T.danger,borderRadius:8,color:T.danger,fontSize:13,cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>Eliminar conta permanentemente</button>
-          </Section>
-          <Section title="Aplicação">
+          </AccountSection>
+          <AccountSection title="Aplicação">
             <div style={{padding:'12px',background:T.bg,borderRadius:10,border:'1px solid '+T.border,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div><div style={{fontSize:13,color:T.text}}>Fuso horário</div><div style={{fontSize:11,color:T.muted,marginTop:2}}>Europa/Lisboa</div></div>
               <div style={{fontSize:11,color:T.muted,background:T.accentLight,padding:'3px 8px',borderRadius:6}}>Auto</div>
@@ -730,7 +730,7 @@ function AccountModal({profile,onSave,onClose}){
             <div style={{padding:'12px',background:T.bg,borderRadius:10,border:'1px solid '+T.border,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div><div style={{fontSize:13,color:T.text}}>Versão</div><div style={{fontSize:11,color:T.muted,marginTop:2}}>CasalApp v1.0 · Preview</div></div>
             </div>
-          </Section>
+          </AccountSection>
         </div>
         <div style={{padding:'14px 24px',borderTop:'1px solid '+T.border,display:'flex',gap:10,flexShrink:0,background:T.card}}>
           <div style={{flex:1}}/>
@@ -772,8 +772,6 @@ function EnterInviteCode({ T, onJoin }) {
     try {
       const {data:{user}} = await supabase.auth.getUser();
       await supabase.from('user_groups').upsert({user_id:user.id,group_id:found.groupId,group_name:found.name,group_emoji:found.emoji,group_color:found.color,group_type:found.type,group_perms:JSON.stringify(found.perms||{})});
-      // Also ensure profile exists
-      await supabase.from('profiles').upsert({id:user.id,email:user.email,name:user.email?.split('@')[0]},{onConflict:'id',ignoreDuplicates:true});
       await supabase.from('invites').update({used_by:user.id,used_at:new Date().toISOString()}).eq('id',found.id);
       if(onJoin) onJoin({id:found.groupId,name:found.name,emoji:found.emoji,color:found.color||'#7c6d52',type:found.type||'colaborativo',admins:[],members:['tu'],perms:found.perms||{}});
       setCode(''); setFound(null); setStatus('');
@@ -831,14 +829,7 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
           supabase.from('profiles').select('id,name,email').in('id', mbs)
             .then(({data:p})=>{
               const map = {};
-              // First set fallback from user_groups data
-              (data||[]).forEach(m=>{ map[m.user_id]={name:'', email:''}; });
-              // Then override with profiles data
-              (p||[]).forEach(pr=>{
-                const email = pr.email||'';
-                const name = pr.name||email.split('@')[0]||'Utilizador';
-                map[pr.id]={name, email};
-              });
+              (p||[]).forEach(pr=>{ map[pr.id]={name:pr.name||pr.email?.split('@')[0]||'Utilizador', email:pr.email}; });
               setProfiles(map);
             });
         }
@@ -864,7 +855,7 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
           <div style={{textAlign:'center',color:T.muted,fontSize:13,padding:20}}>Sem membros</div>
         ) : members.map(uid=>{
           const p = profiles[uid];
-          const name = p?.name || (p?.email ? p.email.split('@')[0] : uid.slice(0,8));
+          const name = p?.name || 'Utilizador';
           const email = p?.email || '';
           const admins = group.admins||[];
           const isAdmin = admins.includes(uid);
@@ -974,7 +965,7 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup,onDelete}){
           </div>
           <div style={{display:'flex',gap:4}}>
             {tbtn('info','Informacao')}
-            {tbtn('membros','Membros')}
+            {isAdmin&&tbtn('membros','Membros')}
             {isAdmin&&group.type==='colaborativo'&&tbtn('perms','Permissoes')}
           </div>
         </div>
@@ -2465,7 +2456,14 @@ export default function App({ user, onLogout }) {
       {onboarding&&<OnboardingModal T={T} onClose={()=>{setOnboard(false);}}/>}
       {searchOpen&&<SearchModal events={events[g]||[]} tasks={tasks[g]||[]} msgs={msgs[g]||[]} notes={notes[g]||[]} onClose={()=>setSearch(false)} onNav={id=>{setTab(id);setSearch(false);}}/>}
       {shortcutsModal&&<ShortcutsModal shortcuts={shortcuts} onSave={sh=>{setShortcuts(sh);setSM(false);}} onClose={()=>setSM(false)}/>}
-      {accountModal&&<AccountModal profile={profile} onSave={p=>{setProfile(p);setAM(false);}} onClose={()=>setAM(false)}/>}
+      {accountModal&&<AccountModal profile={profile} onSave={p=>{
+  setProfile(p);
+  setAM(false);
+  // Save to Supabase
+  supabase.from('profiles').upsert({id:user.id,email:user.email,name:p.name,photo:p.photo||null}).then(r=>r.error&&console.error('save profile:',r.error));
+  // Also update localStorage
+  lsSave('profile',p);
+}} onClose={()=>setAM(false)}/>}
       {groupModal&&<GroupModal group={groupModal} onClose={()=>setGM(null)} onUpdate={gr=>{setGroups(gs=>gs.map(g=>g.id===gr.id?gr:g));setGM(gr);}} onJoinGroup={grp=>{joinGroup(grp);setGM(null);}} onDelete={deleteGroup}/>}
       {newGroupModal&&<NewGroupModal onSave={addGroup} onClose={()=>setNGM(false)} onJoinGroup={grp=>{joinGroup(grp);setNGM(false);}}/>}
       {sendModal&&<SendToGroupModal item={sendModal.item} type={sendModal.type} groups={groups} onClose={()=>setSendM(null)} onSend={(gid,msg)=>{setProps(p=>[...p,{id:genId(),type:sendModal.type,item:sendModal.item,groupId:gid,msg,from:profile.name||'Tu',status:'pending'}]);setSendM(null);}}/>}
