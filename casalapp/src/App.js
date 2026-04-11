@@ -840,9 +840,22 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
       });
   },[group.id]);
 
-  const deleteGroup = async () => {
-    // Remove from user_groups
+  const leaveGroup = async () => {
+    const {data:{user}} = await supabase.auth.getUser();
+    // Only remove current user from the group
+    await supabase.from('user_groups').delete().eq('group_id', group.id).eq('user_id', user.id);
+    onDelete && onDelete(group.id);
+  };
+
+  const deleteGroupForAll = async () => {
+    // Remove ALL members from the group (admin only action)
     await supabase.from('user_groups').delete().eq('group_id', group.id);
+    // Also delete all group data
+    await supabase.from('events').delete().eq('group_id', group.id);
+    await supabase.from('tasks').delete().eq('group_id', group.id);
+    await supabase.from('notes').delete().eq('group_id', group.id);
+    await supabase.from('messages').delete().eq('group_id', group.id);
+    await supabase.from('proposals').delete().eq('group_id', group.id);
     onDelete && onDelete(group.id);
   };
 
@@ -877,23 +890,36 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
 
       {/* Delete group */}
       {!group.isDefault && (
-        <div style={{marginTop:20,paddingTop:16,borderTop:'1px solid '+T.border}}>
+        <div style={{marginTop:20,paddingTop:16,borderTop:'1px solid '+T.border,display:'flex',flexDirection:'column',gap:8}}>
           {!confirmDel ? (
-            <button onClick={()=>setConfDel(true)}
-              style={{width:'100%',padding:'10px',background:'none',border:'1px solid '+T.danger,borderRadius:9,color:T.danger,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
-              🗑 Eliminar grupo
-            </button>
+            <>
+              <button onClick={()=>setConfDel('leave')}
+                style={{width:'100%',padding:'10px',background:'none',border:'1px solid '+T.border,borderRadius:9,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
+                🚪 Sair do grupo
+              </button>
+              <button onClick={()=>setConfDel('delete')}
+                style={{width:'100%',padding:'10px',background:'none',border:'1px solid '+T.danger,borderRadius:9,color:T.danger,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
+                🗑 Eliminar grupo para todos
+              </button>
+            </>
           ) : (
             <div style={{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:9,padding:'12px 14px'}}>
-              <div style={{fontSize:13,color:'#991b1b',marginBottom:10,fontWeight:500}}>Tens a certeza? Esta ação não pode ser desfeita.</div>
+              <div style={{fontSize:13,color:'#991b1b',marginBottom:6,fontWeight:500}}>
+                {confirmDel==='leave' ? '🚪 Sair do grupo?' : '🗑 Eliminar para todos?'}
+              </div>
+              <div style={{fontSize:11,color:'#991b1b',marginBottom:10}}>
+                {confirmDel==='leave' 
+                  ? 'Vais sair do grupo. Podes voltar a entrar com um convite.' 
+                  : 'Apaga o grupo e todos os dados para todos os membros. Irreversível.'}
+              </div>
               <div style={{display:'flex',gap:8}}>
                 <button onClick={()=>setConfDel(false)}
                   style={{flex:1,padding:'8px',background:'none',border:'1px solid #fca5a5',borderRadius:7,color:'#991b1b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
                   Cancelar
                 </button>
-                <button onClick={deleteGroup}
+                <button onClick={confirmDel==='leave' ? leaveGroup : deleteGroupForAll}
                   style={{flex:1,padding:'8px',background:'#dc2626',border:'none',borderRadius:7,color:'#fff',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
-                  Eliminar
+                  {confirmDel==='leave' ? 'Sair' : 'Eliminar tudo'}
                 </button>
               </div>
             </div>
