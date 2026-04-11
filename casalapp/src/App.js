@@ -965,7 +965,7 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup,onDelete}){
           </div>
           <div style={{display:'flex',gap:4}}>
             {tbtn('info','Informacao')}
-            {isAdmin&&tbtn('membros','Membros')}
+            {tbtn('membros','Membros')}
             {isAdmin&&group.type==='colaborativo'&&tbtn('perms','Permissoes')}
           </div>
         </div>
