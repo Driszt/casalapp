@@ -10,8 +10,8 @@ function InviteBanner({ invite, onAccept, onDismiss, loading }) {
   return (
     <div style={{
       position:'fixed',top:0,left:0,right:0,zIndex:9999,
-      background:'linear-gradient(135deg,#0C1525,#1B2A4A)',
-      borderBottom:'2px solid #C9A96E',
+      background:'linear-gradient(135deg,#2a1e10,#3a2a18)',
+      borderBottom:'2px solid #7c6d52',
       padding:'18px 24px',
       display:'flex',alignItems:'center',gap:16,
       fontFamily:"'Georgia','Times New Roman',serif",
@@ -30,7 +30,7 @@ function InviteBanner({ invite, onAccept, onDismiss, loading }) {
         </div>
       </div>
       <button onClick={onAccept} disabled={loading}
-        style={{padding:'10px 22px',background:'linear-gradient(135deg,#C9A96E,#D4B87E)',border:'none',borderRadius:10,color:'#0C1525',fontSize:14,cursor:loading?'wait':'pointer',fontFamily:'inherit',fontWeight:500,flexShrink:0}}>
+        style={{padding:'10px 22px',background:'#7c6d52',border:'none',borderRadius:9,color:'#f5f0e8',fontSize:14,cursor:loading?'wait':'pointer',fontFamily:'inherit',fontWeight:500,flexShrink:0}}>
         {loading?'A entrar...':'✓ Entrar no grupo'}
       </button>
       <button onClick={onDismiss}
@@ -130,10 +130,10 @@ function Root() {
 
   if(loading || (user && userGroups===null)) {
     return (
-      <div style={{minHeight:'100vh',background:'linear-gradient(155deg,#0C1525,#1B2A4A)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+      <div style={{minHeight:'100vh',background:'linear-gradient(155deg,#0C1525,#1B2A4A)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif"}}>
         <div style={{textAlign:'center'}}>
           <div style={{fontSize:32,marginBottom:12}}>❤️</div>
-          <div style={{fontSize:14,color:'rgba(255,255,255,0.5)'}}>A carregar...</div>
+          <div style={{fontSize:14,color:'#9a8e7e'}}>A carregar...</div>
         </div>
       </div>
     );
@@ -143,7 +143,7 @@ function Root() {
     return (
       <>
         {invite&&(
-          <div style={{background:'#2a1e10',padding:'14px 24px',textAlign:'center',fontFamily:"'Georgia',serif",borderBottom:'2px solid #C9A96E',display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
+          <div style={{background:'#2a1e10',padding:'14px 24px',textAlign:'center',fontFamily:"'Georgia',serif",borderBottom:'2px solid #7c6d52',display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
             <span style={{fontSize:20}}>{invite.emoji}</span>
             <span style={{color:'#f0e8d8',fontSize:14}}>Faz login para aceitar o convite para <strong>"{invite.name}"</strong></span>
           </div>
