@@ -2,11 +2,11 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { supabase } from './supabase';
 
 const T = {
-  bg:"#f2ece0", sidebar:"#e8dfd0", sidebarBorder:"#d8cebb",
-  card:"#faf6ef", border:"#ddd5c4", text:"#1e1810", muted:"#9a8e7e",
-  accent:"#7c6d52", accentDark:"#5c4f3a", accentLight:"#f0ead8",
-  accentMid:"#c8b99a", active:"#4a3f2e",
-  success:"#5a8a5a", danger:"#c05a5a", warning:"#c09040",
+  bg:"#FAFAF7", sidebar:"#F0EFE9", sidebarBorder:"#E2E0D8",
+  card:"#FFFFFF", border:"#E2E0D8", text:"#1A1A1A", muted:"#6B6B6B",
+  accent:"#C9A96E", accentDark:"#1B2A4A", accentLight:"rgba(201,169,110,0.12)",
+  accentMid:"#D4B87E", active:"#1B2A4A",
+  success:"#4A7C59", danger:"#B04A4A", warning:"#C9A96E",
 };
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -115,10 +115,10 @@ const INIT_WINS = {
 };
 
 const DK = {
-  bg:"#141210", sidebar:"#1c1916", sidebarBorder:"#2a2520",
-  card:"#1e1b18", border:"#2e2a26", text:"#f0e8d8", muted:"#7a6e60",
-  accent:"#c8a87a", accentDark:"#a88a5a", accentLight:"rgba(200,168,122,0.1)",
-  accentMid:"#6a5a40", success:"#5a9a5a", danger:"#c06060", warning:"#c09040",
+  bg:"#0F1218", sidebar:"#1A1F2A", sidebarBorder:"#2A3040",
+  card:"#1A1F2A", border:"#2A3040", text:"#F0EFE9", muted:"#9CA3AF",
+  accent:"#C9A96E", accentDark:"#D4B87E", accentLight:"rgba(201,169,110,0.12)",
+  accentMid:"#C9A96E", success:"#5A9A6A", danger:"#D06060", warning:"#c09040",
 };
 
 const INIT_NOTES = { casal:[], cozinha:[], oracao:[] };
@@ -167,7 +167,7 @@ function EventModal({event,onSave,onDelete,onClose,defaultDate}){
   const inp={width:'100%',boxSizing:'border-box',border:'1px solid '+T.border,borderRadius:7,padding:'9px 12px',fontSize:13,color:T.text,background:T.bg,outline:'none',fontFamily:'inherit'};
   const lbl={display:'block',fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:5};
   return(
-    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(30,24,16,0.45)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(15,18,24,0.55)',zIndex:4000,backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div onClick={e=>e.stopPropagation()} style={{background:T.card,border:'1px solid '+T.border,borderRadius:16,padding:28,width:400,maxHeight:'90vh',overflowY:'auto',boxShadow:'0 16px 60px rgba(30,24,16,0.2)',fontFamily:'inherit'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:22}}>
           <h3 style={{margin:0,fontSize:16,fontWeight:400,color:T.text}}>{event?'Editar evento':'Novo evento'}</h3>
@@ -201,7 +201,7 @@ function EventModal({event,onSave,onDelete,onClose,defaultDate}){
           {event&&<button onClick={()=>onDelete(event.id)} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.danger,borderRadius:7,color:T.danger,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Eliminar</button>}
           <div style={{flex:1}}/>
           <button onClick={onClose} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
-          <button onClick={()=>title&&date&&onSave({id:event?.id||genId(),title,date,type,desc,reminder,recur})} style={{padding:'9px 20px',background:T.accentDark,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>{event?'Guardar':'Criar'}</button>
+          <button onClick={()=>title&&date&&onSave({id:event?.id||genId(),title,date,type,desc,reminder,recur})} style={{padding:'9px 20px',background:'#1B2A4A',border:'none',borderRadius:10,color:'#fff',fontSize:13,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif"}}>{event?'Guardar':'Criar'}</button>
         </div>
       </div>
     </div>
@@ -402,7 +402,7 @@ function TaskModal({task,onSave,onDelete,onClose,cats}){
   const inp={width:'100%',boxSizing:'border-box',border:'1px solid '+T.border,borderRadius:7,padding:'9px 12px',fontSize:13,color:T.text,background:T.bg,outline:'none',fontFamily:'inherit'};
   const lbl={display:'block',fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:5};
   return(
-    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(30,24,16,0.45)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(15,18,24,0.55)',zIndex:4000,backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div onClick={e=>e.stopPropagation()} style={{background:T.card,border:'1px solid '+T.border,borderRadius:16,padding:28,width:400,boxShadow:'0 16px 60px rgba(30,24,16,0.2)',fontFamily:'inherit'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}}>
           <h3 style={{margin:0,fontSize:16,fontWeight:400,color:T.text}}>{task?'Editar tarefa':'Nova tarefa'}</h3>
@@ -453,7 +453,7 @@ function TaskModal({task,onSave,onDelete,onClose,cats}){
           {task&&<button onClick={()=>onDelete(task.id)} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.danger,borderRadius:7,color:T.danger,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Eliminar</button>}
           <div style={{flex:1}}/>
           <button onClick={onClose} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
-          <button onClick={()=>text&&onSave({id:task?.id||genId(),text,col,priority,done:col==='Concluído',priv,cat,dueDate,recur})} style={{padding:'9px 20px',background:T.accentDark,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>{task?'Guardar':'Criar'}</button>
+          <button onClick={()=>text&&onSave({id:task?.id||genId(),text,col,priority,done:col==='Concluído',priv,cat,dueDate,recur})} style={{padding:'9px 20px',background:'#1B2A4A',border:'none',borderRadius:10,color:'#fff',fontSize:13,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif"}}>{task?'Guardar':'Criar'}</button>
         </div>
       </div>
     </div>
@@ -595,7 +595,7 @@ function ChatView({messages,onSend,groupColor,onReact,reactions,onPin}){
             </div>}
             <div style={{maxWidth:'60%',position:'relative'}}>
               {m.pinned&&<div style={{position:'absolute',top:-8,right:m.from==='me'?0:'auto',left:m.from!=='me'?0:'auto',fontSize:10,color:T.accent}}>📌</div>}
-              <div style={{padding:'9px 13px',borderRadius:m.from==='me'?'14px 14px 3px 14px':'14px 14px 14px 3px',background:m.from==='me'?(groupColor||T.accentDark):T.card,color:m.from==='me'?'#f5f0e8':T.text,fontSize:13,lineHeight:1.55,border:m.from==='me'?'none':'1px solid '+T.border}}>
+              <div style={{padding:'9px 13px',borderRadius:m.from==='me'?'14px 14px 3px 14px':'14px 14px 14px 3px',background:m.from==='me'?'#1B2A4A':T.card,color:m.from==='me'?'#fff':T.text,fontSize:13,lineHeight:1.55,border:m.from==='me'?'none':'1px solid '+T.border}}>
                 {m.from!=='me'&&<div style={{fontSize:9,color:m.from==='me'?'rgba(245,240,232,0.5)':T.muted,marginBottom:2}}>{m.from}</div>}
                 {m.text}
                 <div style={{fontSize:10,color:m.from==='me'?'rgba(245,240,232,0.4)':T.muted,marginTop:3,textAlign:m.from==='me'?'right':'left',display:'flex',alignItems:'center',justifyContent:m.from==='me'?'flex-end':'flex-start',gap:3}}>{m.time}{m.from==='me'&&<span style={{fontSize:10,opacity:0.6}}>{m.read?'✓✓':'✓'}</span>}</div>
@@ -669,7 +669,7 @@ function AccountModal({profile,onSave,onClose}){
   const handlePhoto=e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>setPhoto(ev.target.result);reader.readAsDataURL(file);};
   const inp={width:'100%',boxSizing:'border-box',border:'1px solid '+T.border,borderRadius:7,padding:'9px 12px',fontSize:13,color:T.text,background:T.bg,outline:'none',fontFamily:'inherit'};
   return(
-    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(30,24,16,0.45)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(15,18,24,0.55)',zIndex:4000,backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div onClick={e=>e.stopPropagation()} style={{background:T.card,border:'1px solid '+T.border,borderRadius:18,width:440,maxHeight:'88vh',display:'flex',flexDirection:'column',boxShadow:'0 20px 70px rgba(30,24,16,0.22)',fontFamily:'inherit',overflow:'hidden'}}>
         <div style={{padding:'20px 24px 16px',borderBottom:'1px solid '+T.border,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <h3 style={{margin:0,fontSize:16,fontWeight:400,color:T.text}}>Definições da conta</h3>
@@ -735,7 +735,7 @@ function AccountModal({profile,onSave,onClose}){
         <div style={{padding:'14px 24px',borderTop:'1px solid '+T.border,display:'flex',gap:10,flexShrink:0,background:T.card}}>
           <div style={{flex:1}}/>
           <button onClick={onClose} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
-          <button onClick={()=>onSave({name,photo,email,notif,notifEvents,notifTasks,notifChat,defaultAvail})} style={{padding:'9px 20px',background:T.accentDark,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Guardar</button>
+          <button onClick={()=>onSave({name,photo,email,notif,notifEvents,notifTasks,notifChat,defaultAvail})} style={{padding:'9px 20px',background:'#1B2A4A',border:'none',borderRadius:10,color:'#fff',fontSize:13,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif"}}>Guardar</button>
         </div>
       </div>
     </div>
@@ -949,7 +949,7 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup,onDelete}){
   };
   const tbtn = (id,lbl) => <button key={id} onClick={()=>setTab(id)} style={{padding:'6px 14px',borderRadius:7,border:'none',background:tab===id?T.accentLight:'transparent',color:tab===id?T.accentDark:T.muted,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>{lbl}</button>;
   return(
-    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(30,24,16,0.45)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(15,18,24,0.55)',zIndex:4000,backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div onClick={e=>e.stopPropagation()} style={{background:T.card,border:'1px solid '+T.border,borderRadius:18,width:440,maxHeight:'88vh',display:'flex',flexDirection:'column',boxShadow:'0 20px 70px rgba(30,24,16,0.25)',overflow:'hidden',fontFamily:'inherit'}}>
         <div style={{padding:'16px 22px 12px',borderBottom:'1px solid '+T.border,flexShrink:0}}>
           <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:12}}>
@@ -1031,7 +1031,7 @@ function NewGroupModal({onSave,onClose,onJoinGroup}){
   const PLABELS = [{k:'addEvent',l:'Adicionar eventos'},{k:'editEvent',l:'Editar eventos'},{k:'deleteEvent',l:'Eliminar eventos'},{k:'addTask',l:'Criar tarefas'},{k:'editTask',l:'Editar tarefas'},{k:'deleteTask',l:'Eliminar tarefas'},{k:'addNote',l:'Criar notas'},{k:'chat',l:'Enviar mensagens'}];
   const inp = {width:'100%',boxSizing:'border-box',border:'1px solid '+T.border,borderRadius:7,padding:'9px 12px',fontSize:13,color:T.text,background:T.bg,outline:'none',fontFamily:'inherit'};
   return(
-    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(30,24,16,0.45)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(15,18,24,0.55)',zIndex:4000,backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div onClick={e=>e.stopPropagation()} style={{background:T.card,border:'1px solid '+T.border,borderRadius:18,width:420,maxHeight:'88vh',display:'flex',flexDirection:'column',boxShadow:'0 20px 70px rgba(30,24,16,0.25)',overflow:'hidden',fontFamily:'inherit'}}>
         <div style={{padding:'18px 24px 14px',borderBottom:'1px solid '+T.border,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <div>
@@ -1209,7 +1209,7 @@ function Bot({onAddEvent,onAddTask}){
             <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}
               placeholder="Escreve um comando..."
               style={{flex:1,border:'1px solid '+T.border,borderRadius:7,padding:'7px 10px',fontSize:12,outline:'none',fontFamily:'inherit',background:T.bg,color:T.text}}/>
-            <button onClick={send} style={{padding:'7px 12px',background:T.accentDark,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>→</button>
+            <button onClick={send} style={{padding:'7px 12px',background:'#1B2A4A',border:'none',borderRadius:10,color:'#fff',fontSize:13,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif"}}>→</button>
           </div>
         </div>
       )}
@@ -1504,7 +1504,7 @@ function DashboardView({ events, tasks, msgs, notes, profile, proposals, groups,
   return (
     <div style={{padding:24,overflowY:'auto',height:'100%',boxSizing:'border-box'}}>
       <div style={{marginBottom:20}}>
-        <div style={{fontSize:22,fontWeight:400,color:T.text,marginBottom:4}}>{greeting}, {profile.name||'Tu'} 👋</div>
+        <div style={{fontSize:22,fontWeight:600,color:T.text,marginBottom:4,fontFamily:"'Fraunces',Georgia,serif"}}>{greeting}, {profile.name||'Tu'} 👋</div>
         <div style={{fontSize:13,color:T.muted}}>{new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
       </div>
       {reminders.length>0&&(
@@ -1767,7 +1767,7 @@ function ShortcutsModal({ shortcuts, onSave, onClose }) {
         <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
           <button onClick={()=>setSh(DEFAULT_SHORTCUTS)} style={{padding:'8px 14px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>Repor padrão</button>
           <button onClick={onClose} style={{padding:'8px 14px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
-          <button onClick={()=>onSave(sh)} style={{padding:'8px 18px',background:T.accentDark,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Guardar</button>
+          <button onClick={()=>onSave(sh)} style={{padding:'8px 18px',background:'#1B2A4A',border:'none',borderRadius:10,color:'#fff',fontSize:13,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif"}}>Guardar</button>
         </div>
       </div>
     </div>
@@ -1806,7 +1806,7 @@ function SendToGroupModal({ item, type, groups, onSend, onClose }) {
         </div>
         <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
           <button onClick={onClose} style={{padding:'9px 16px',background:'none',border:'1px solid '+T.border,borderRadius:7,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
-          <button onClick={()=>onSend(target,msg)} style={{padding:'9px 20px',background:T.accentDark,border:'none',borderRadius:7,color:'#f5f0e8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Propor →</button>
+          <button onClick={()=>onSend(target,msg)} style={{padding:'9px 20px',background:'#1B2A4A',border:'none',borderRadius:10,color:'#fff',fontSize:13,cursor:'pointer',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif"}}>Propor →</button>
         </div>
       </div>
     </div>
@@ -2297,7 +2297,7 @@ export default function App({ user, onLogout }) {
   };
 
   return(
-    <div style={{display:'flex',height:'100vh',fontFamily:"'Georgia','Times New Roman',serif",background:T.bg,overflow:'hidden'}}>
+    <div style={{display:'flex',height:'100vh',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif",background:T.bg,overflow:'hidden'}}>
 
       {/* GROUP RAIL */}
       <div style={{width:58,background:'#1e1810',display:'flex',flexDirection:'column',alignItems:'center',padding:'12px 0',gap:5,flexShrink:0,zIndex:2}}>
@@ -2350,9 +2350,9 @@ export default function App({ user, onLogout }) {
         <div style={{padding:'13px 14px',borderBottom:'1px solid '+T.sidebarBorder,display:'flex',alignItems:'center',gap:10}}>
           <div style={{width:30,height:30,borderRadius:8,background:(curGroup?.color||T.accent)+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>{curGroup?.emoji}</div>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontSize:13,color:T.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{curGroup?.name}</div>
+            <div style={{fontSize:13,color:T.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:"'Fraunces',Georgia,serif",fontWeight:600}}>{curGroup?.name}</div>
             <div style={{display:'flex',alignItems:'center',gap:4,marginTop:1}}>
-              {curGroup?.type==='casal'&&<span style={{fontSize:9,color:'#c05a5a',background:'#c05a5a22',borderRadius:8,padding:'1px 6px'}}>❤️ Casal</span>}
+              {curGroup?.type==='casal'&&<span style={{fontSize:9,color:'#C9A96E',background:'rgba(201,169,110,0.15)',borderRadius:8,padding:'2px 7px',fontWeight:600}}>❤️ Casal</span>}
               {curGroup?.type==='colaborativo'&&<span style={{fontSize:9,color:'#5a8a5a',background:'#5a8a5a22',borderRadius:8,padding:'1px 6px'}}>👥 Colab.</span>}
               <span style={{fontSize:9,color:T.muted}}>{(curGroup?.members||[]).length} membros</span>
             </div>
@@ -2374,7 +2374,7 @@ export default function App({ user, onLogout }) {
             const isActive = mode==='tabs'?tab===t.id:openWins.includes(t.id);
             return(
               <button key={t.id} onClick={()=>mode==='tabs'?setTab(t.id):openWin(t.id)}
-                style={{display:'flex',alignItems:'center',gap:9,padding:'9px 10px',borderRadius:7,background:isActive?T.accentLight:'transparent',border:'none',borderLeft:isActive?'2px solid '+(curGroup?.color||T.accent):'2px solid transparent',cursor:'pointer',width:'100%',textAlign:'left',fontSize:12,color:isActive?T.accentDark:T.muted,fontFamily:'inherit',transition:'all 0.15s',marginBottom:2,boxSizing:'border-box'}}>
+                style={{display:'flex',alignItems:'center',gap:9,padding:'9px 10px',borderRadius:7,background:isActive?T.accentDark:'transparent',border:'none',cursor:'pointer',width:'100%',textAlign:'left',fontSize:12,color:isActive?'#fff':T.muted,fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif",transition:'all 0.15s',marginBottom:2,boxSizing:'border-box',borderRadius:8}}>
                 <Icon name={t.icon} size={14} color={isActive?curGroup?.color||T.accentDark:T.muted}/>
                 {t.label}
                 {t.id==='tasks'&&pending>0&&<span style={{marginLeft:'auto',background:curGroup?.color||T.accent,color:'#f5f0e8',borderRadius:10,padding:'1px 6px',fontSize:9}}>{pending}</span>}
@@ -2450,7 +2450,7 @@ export default function App({ user, onLogout }) {
 
       {/* ARCHIVE MODAL */}
       {archiveOpen&&(
-        <div onClick={()=>setArch(false)} style={{position:'fixed',inset:0,background:'rgba(30,24,16,0.45)',zIndex:4000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div onClick={()=>setArch(false)} style={{position:'fixed',inset:0,background:'rgba(15,18,24,0.55)',zIndex:4000,backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center'}}>
           <div onClick={e=>e.stopPropagation()} style={{background:T.card,border:'1px solid '+T.border,borderRadius:18,width:520,maxHeight:'80vh',display:'flex',flexDirection:'column',boxShadow:'0 20px 70px rgba(30,24,16,0.22)',overflow:'hidden',fontFamily:'inherit'}}>
             <div style={{padding:'18px 24px',borderBottom:'1px solid '+T.border,display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
               <h3 style={{margin:0,fontSize:16,fontWeight:400,color:T.text}}>📦 Arquivo</h3>
