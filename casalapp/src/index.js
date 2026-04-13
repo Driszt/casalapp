@@ -130,7 +130,7 @@ function Root() {
 
   if(loading || (user && userGroups===null)) {
     return (
-      <div style={{minHeight:'100vh',background:'linear-gradient(155deg,#0C1525,#1B2A4A)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif"}}>
+      <div style={{minHeight:'100vh',background:'#1e1810',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Georgia',serif"}}>
         <div style={{textAlign:'center'}}>
           <div style={{fontSize:32,marginBottom:12}}>❤️</div>
           <div style={{fontSize:14,color:'#9a8e7e'}}>A carregar...</div>
