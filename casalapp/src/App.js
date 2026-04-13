@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
+if(typeof document!=="undefined"&&!document.getElementById("cf")){var lk=document.createElement("link");lk.id="cf";lk.rel="stylesheet";lk.href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap";document.head.appendChild(lk);}
 import { supabase } from './supabase';
 
 const T = {
@@ -810,7 +811,7 @@ function EnterInviteCode({ T, onJoin }) {
 
 
 // ── MEMBERS TAB ───────────────────────────────────────────────────────────────
-function MembersTab({ group, T, color, onUpdate, onDelete }) {
+function MembersTab({ group, T, color, onUpdate, onDelete, onLeave, onDeleteAll, onClose }) {
   const [members, setMembers]   = useState([]);
   const [profiles, setProfiles] = useState({});
   const [loading, setLoading]   = useState(true);
@@ -875,24 +876,17 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
 
       {/* Delete group */}
       {!group.isDefault && (
-        <div style={{marginTop:20,paddingTop:16,borderTop:'1px solid '+T.border}}>
-          {!confirmDel ? (
-            <button onClick={()=>setConfDel(true)}
-              style={{width:'100%',padding:'10px',background:'none',border:'1px solid '+T.danger,borderRadius:9,color:T.danger,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
-              🗑 Eliminar grupo
-            </button>
-          ) : (
-            <div style={{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:9,padding:'12px 14px'}}>
-              <div style={{fontSize:13,color:'#991b1b',marginBottom:10,fontWeight:500}}>Tens a certeza? Esta ação não pode ser desfeita.</div>
+        <div style={{marginTop:20,paddingTop:16,borderTop:'1px solid '+T.border,display:'flex',flexDirection:'column',gap:8}}>
+          {!confirmDel ? (<>
+            <button onClick={()=>setConfDel('leave')} style={{width:'100%',padding:'10px',background:'none',border:'1px solid '+T.border,borderRadius:10,color:T.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>🚪 Sair do grupo</button>
+            <button onClick={()=>setConfDel('delete')} style={{width:'100%',padding:'10px',background:'none',border:'1px solid '+T.danger,borderRadius:10,color:T.danger,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>🗑 Eliminar grupo para todos</button>
+          </>) : (
+            <div style={{background:'#fee2e2',border:'1px solid #fca5a5',borderRadius:12,padding:'14px'}}>
+              <div style={{fontSize:13,color:'#991b1b',marginBottom:4,fontWeight:600}}>{confirmDel==='leave'?'Sair do grupo?':'Eliminar para todos?'}</div>
+              <div style={{fontSize:11,color:'#991b1b',marginBottom:12}}>{confirmDel==='leave'?'Vais sair. Os outros mantem o grupo.':'Apaga o grupo e todos os dados. Irreversivel.'}</div>
               <div style={{display:'flex',gap:8}}>
-                <button onClick={()=>setConfDel(false)}
-                  style={{flex:1,padding:'8px',background:'none',border:'1px solid #fca5a5',borderRadius:7,color:'#991b1b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
-                  Cancelar
-                </button>
-                <button onClick={deleteGroup}
-                  style={{flex:1,padding:'8px',background:'#dc2626',border:'none',borderRadius:7,color:'#fff',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
-                  Eliminar
-                </button>
+                <button onClick={()=>setConfDel(false)} style={{flex:1,padding:'8px',background:'none',border:'1px solid #fca5a5',borderRadius:8,color:'#991b1b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>Cancelar</button>
+                <button onClick={()=>{confirmDel==='leave'?(onLeave&&onLeave(group.id)):(onDeleteAll&&onDeleteAll(group.id));onClose&&onClose();}} style={{flex:1,padding:'8px',background:'#dc2626',border:'none',borderRadius:8,color:'#fff',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>{confirmDel==='leave'?'Sair':'Eliminar tudo'}</button>
               </div>
             </div>
           )}
@@ -903,7 +897,7 @@ function MembersTab({ group, T, color, onUpdate, onDelete }) {
 }
 
 
-function GroupModal({group,onClose,onUpdate,onJoinGroup,onDelete}){
+function GroupModal({group,onClose,onUpdate,onJoinGroup,onDelete,onLeave,onDeleteAll}){
   const T = G;
   const [tab,setTab]     = useState('info');
   const [color,setColor] = useState(group.color||'#7c6d52');
@@ -996,7 +990,7 @@ function GroupModal({group,onClose,onUpdate,onJoinGroup,onDelete}){
 
           </>}
           {tab==='membros'&&<>
-            <MembersTab group={group} T={T} color={color} onUpdate={onUpdate} onDelete={onDelete}/>
+            <MembersTab group={group} T={T} color={color} onUpdate={onUpdate} onDelete={onDelete} onLeave={onLeave} onDeleteAll={onDeleteAll} onClose={onClose}/>
           </>}
           {tab==='perms'&&<>
             <div style={{fontSize:11,color:T.muted,marginBottom:14,lineHeight:1.6}}>Permissoes dos membros nao-admin neste grupo.</div>
@@ -2216,6 +2210,22 @@ export default function App({ user, onLogout }) {
     setAG(prev=>prev===gid?'casal':prev);
   };
 
+  const leaveGroup = async (gid) => {
+    const {data:{user:cu}} = await supabase.auth.getUser();
+    await supabase.from('user_groups').delete().eq('group_id',gid).eq('user_id',cu.id);
+    setGroups(gs=>{const u=gs.filter(g=>g.id!==gid);lsSave('groups',u);return u;});
+    setAG(prev=>prev===gid?'casal':prev);
+  };
+  const deleteGroupForAll = async (gid) => {
+    await supabase.from('user_groups').delete().eq('group_id',gid);
+    await supabase.from('events').delete().eq('group_id',gid);
+    await supabase.from('tasks').delete().eq('group_id',gid);
+    await supabase.from('notes').delete().eq('group_id',gid);
+    await supabase.from('messages').delete().eq('group_id',gid);
+    await supabase.from('proposals').delete().eq('group_id',gid);
+    setGroups(gs=>{const u=gs.filter(g=>g.id!==gid);lsSave('groups',u);return u;});
+    setAG(prev=>prev===gid?'casal':prev);
+  };
   const deleteGroup  = async (gid)=>{
     setGroups(gs=>{const u=gs.filter(g=>g.id!==gid);lsSave('groups',u);return u;});
     setEvents(e=>{const u={...e};delete u[gid];lsSave('events',u);return u;});
@@ -2263,7 +2273,6 @@ export default function App({ user, onLogout }) {
   const handleLogout   = async ()=>{ await supabase.auth.signOut(); onLogout(); };
 
   // ── DEBUG STATE ──────────────────────────────────────────────────────────
-    console.log('[CasalApp]', msg);
     setDebugLog(prev=>[...prev.slice(-8), new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' '+msg]);
   };
 
