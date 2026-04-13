@@ -2277,7 +2277,7 @@ export default function App({ user, onLogout }) {
   const minWins    = openWins.filter(id=>winStates[id]?.minimized);
   const visWins    = openWins.filter(id=>!winStates[id]?.minimized);
   const curGroup   = groups.find(gr=>gr.id===g)||groups[0];
-  const LIGHT      = {bg:"#f2ece0",sidebar:"#e8dfd0",sidebarBorder:"#d8cebb",card:"#faf6ef",border:"#ddd5c4",text:"#1e1810",muted:"#9a8e7e",accent:"#7c6d52",accentDark:"#5c4f3a",accentLight:"#f0ead8",accentMid:"#c8b99a",success:"#5a8a5a",danger:"#c05a5a",warning:"#c09040"};
+  const LIGHT      = {bg:"#FAFAF7",sidebar:"#F0EFE9",sidebarBorder:"#E2E0D8",card:"#FFFFFF",border:"#E2E0D8",text:"#1A1A1A",muted:"#6B6B6B",accent:"#C9A96E",accentDark:"#1B2A4A",accentLight:"rgba(201,169,110,0.12)",accentMid:"#D4B87E",success:"#4A7C59",danger:"#B04A4A",warning:"#C9A96E"};
   const T          = darkMode ? DK : LIGHT;
   G = T;
 
