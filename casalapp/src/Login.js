@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { supabase } from './supabase';
 
-const T = {
-  bg:'#1e1810', card:'#2a2318', border:'#3a3228', text:'#f0e8d8',
-  muted:'#9a8e7e', accent:'#c8a87a', accentDark:'#a88a5a', danger:'#c06060',
-};
-
 export default function Login({ onLogin }) {
   const [email,setEmail]       = useState('');
   const [password,setPassword] = useState('');
   const [loading,setLoading]   = useState(false);
   const [error,setError]       = useState('');
-  const [mode,setMode]         = useState('login'); // 'login' | 'register'
+  const [mode,setMode]         = useState('login');
 
   const handle = async () => {
     if (!email || !password) { setError('Preenche email e password.'); return; }
@@ -23,70 +18,122 @@ export default function Login({ onLogin }) {
       } else {
         result = await supabase.auth.signUp({ email, password });
         if (!result.error && result.data.user) {
-          // Create profile
           await supabase.from('profiles').upsert({
-            id: result.data.user.id,
-            email,
-            name: email.split('@')[0],
-            created_at: new Date().toISOString(),
+            id: result.data.user.id, email, name: email.split('@')[0]
           });
         }
       }
-      if (result.error) { setError(result.error.message); }
-      else if (result.data.user) { onLogin(result.data.user); }
-      else if (mode === 'register') { setError('Verifica o teu email para confirmar o registo.'); }
-    } catch(e) {
-      setError('Erro de ligação. Tenta novamente.');
-    }
+      if (result.error) setError(result.error.message);
+      else if (result.data.user) onLogin(result.data.user);
+    } catch { setError('Erro de ligacao.'); }
     setLoading(false);
   };
 
-  const inp = {
-    width:'100%', boxSizing:'border-box', background:T.bg,
-    border:'1px solid '+T.border, borderRadius:9, padding:'12px 16px',
-    fontSize:14, color:T.text, outline:'none', fontFamily:'inherit',
-  };
-
   return (
-    <div style={{minHeight:'100vh',background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Georgia','Times New Roman',serif"}}>
-      <div style={{width:360,background:T.card,border:'1px solid '+T.border,borderRadius:20,padding:36,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}}>
+    <div
+      onKeyDown={e => e.key === 'Enter' && handle()}
+      tabIndex={-1}
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(155deg,#0C1525 0%,#1B2A4A 40%,#141F38 70%,#0A1020 100%)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16, position: 'relative', overflow: 'hidden',
+        fontFamily: "'Plus Jakarta Sans',system-ui,sans-serif", outline: 'none'
+      }}
+    >
+      {/* Ambient blobs */}
+      <div style={{position:'absolute',top:'20%',left:'-5%',width:300,height:300,borderRadius:'50%',background:'radial-gradient(circle,rgba(201,169,110,0.12),transparent)',filter:'blur(70px)',pointerEvents:'none'}}/>
+      <div style={{position:'absolute',bottom:'25%',right:'-5%',width:320,height:320,borderRadius:'50%',background:'radial-gradient(circle,rgba(201,169,110,0.08),transparent)',filter:'blur(80px)',pointerEvents:'none'}}/>
+
+      <div style={{width:'100%',maxWidth:380,position:'relative',zIndex:10}}>
         {/* Logo */}
-        <div style={{textAlign:'center',marginBottom:32}}>
-          <div style={{fontSize:32,marginBottom:8}}>❤️</div>
-          <div style={{fontSize:22,color:T.text,letterSpacing:-0.5}}>CasalApp</div>
-          <div style={{fontSize:11,color:T.muted,marginTop:4,letterSpacing:2,textTransform:'uppercase'}}>O vosso espaço</div>
-        </div>
-
-        {/* Toggle */}
-        <div style={{display:'flex',background:T.bg,borderRadius:10,padding:4,marginBottom:24}}>
-          {[['login','Entrar'],['register','Registar']].map(([m,l])=>(
-            <button key={m} onClick={()=>{setMode(m);setError('');}}
-              style={{flex:1,padding:'8px',borderRadius:8,border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:13,background:mode===m?T.accent:'transparent',color:mode===m?'#1a1008':T.muted,transition:'all 0.2s'}}>
-              {l}
-            </button>
-          ))}
-        </div>
-
-        <div style={{display:'flex',flexDirection:'column',gap:14}}>
-          <div>
-            <div style={{fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Email</div>
-            <input value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handle()} type="email" placeholder="tu@email.com" style={inp}/>
+        <div style={{textAlign:'center',marginBottom:36}}>
+          <div style={{
+            width:72,height:72,borderRadius:24,margin:'0 auto 20px',
+            background:'linear-gradient(135deg,rgba(201,169,110,0.2),rgba(201,169,110,0.05))',
+            border:'1px solid rgba(201,169,110,0.25)',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            boxShadow:'0 0 40px rgba(201,169,110,0.15)'
+          }}>
+            <span style={{fontSize:32,fontFamily:"'Fraunces',Georgia,serif",color:'#C9A96E',fontWeight:700}}>C</span>
           </div>
-          <div>
-            <div style={{fontSize:10,color:T.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Password</div>
-            <input value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handle()} type="password" placeholder="••••••••" style={inp}/>
-          </div>
+          <h1 style={{fontSize:38,fontWeight:700,color:'#fff',fontFamily:"'Fraunces',Georgia,serif",letterSpacing:'-0.02em',margin:0}}>
+            CasalApp
+          </h1>
+          <div style={{width:56,height:1,background:'linear-gradient(90deg,transparent,#C9A96E,transparent)',margin:'12px auto'}}/>
+          <p style={{fontSize:11,color:'rgba(255,255,255,0.3)',letterSpacing:'0.3em',textTransform:'uppercase',margin:0}}>
+            O vosso espaco
+          </p>
         </div>
 
-        {error && <div style={{marginTop:14,padding:'10px 14px',background:'rgba(192,96,96,0.15)',border:'1px solid '+T.danger,borderRadius:8,fontSize:12,color:T.danger}}>{error}</div>}
+        {/* Card */}
+        <div style={{
+          borderRadius:32,padding:36,
+          background:'rgba(30,42,74,0.5)',
+          backdropFilter:'blur(60px)',
+          border:'1px solid rgba(201,169,110,0.1)'
+        }}>
+          {/* Mode tabs */}
+          <div style={{display:'flex',gap:10,marginBottom:32}}>
+            {[['login','Entrar'],['register','Registar']].map(([m,l])=>(
+              <button key={m} onClick={()=>{setMode(m);setError('');}} style={{
+                flex:1,padding:'12px',borderRadius:14,fontSize:14,fontWeight:700,
+                cursor:'pointer',border:'none',fontFamily:'inherit',transition:'all 0.3s',
+                background:mode===m?'linear-gradient(135deg,#C9A96E,#D4B87E)':'rgba(255,255,255,0.05)',
+                color:mode===m?'#0C1525':'rgba(255,255,255,0.5)'
+              }}>{l}</button>
+            ))}
+          </div>
 
-        <button onClick={handle} disabled={loading}
-          style={{width:'100%',marginTop:22,padding:'13px',background:loading?T.border:T.accent,border:'none',borderRadius:10,color:'#1a1008',fontSize:14,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',fontWeight:500,transition:'all 0.2s'}}>
-          {loading ? 'A processar...' : mode==='login' ? 'Entrar' : 'Criar conta'}
-        </button>
+          {/* Inputs */}
+          <div style={{display:'flex',flexDirection:'column',gap:18}}>
+            <div>
+              <label style={{display:'block',fontSize:10,color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.2em',marginBottom:8,fontWeight:600}}>Email</label>
+              <input
+                type="email" value={email} onChange={e=>setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                style={{width:'100%',boxSizing:'border-box',padding:'14px 16px',borderRadius:14,background:'rgba(255,255,255,0.08)',border:'none',color:'#fff',fontSize:14,fontFamily:'inherit',outline:'none'}}
+                onFocus={e=>e.target.style.background='rgba(255,255,255,0.13)'}
+                onBlur={e=>e.target.style.background='rgba(255,255,255,0.08)'}
+              />
+            </div>
+            <div>
+              <label style={{display:'block',fontSize:10,color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.2em',marginBottom:8,fontWeight:600}}>Password</label>
+              <input
+                type="password" value={password} onChange={e=>setPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{width:'100%',boxSizing:'border-box',padding:'14px 16px',borderRadius:14,background:'rgba(255,255,255,0.08)',border:'none',color:'#fff',fontSize:14,fontFamily:'inherit',outline:'none'}}
+                onFocus={e=>e.target.style.background='rgba(255,255,255,0.13)'}
+                onBlur={e=>e.target.style.background='rgba(255,255,255,0.08)'}
+              />
+            </div>
+          </div>
 
-        <div style={{textAlign:'center',marginTop:20,fontSize:11,color:T.muted,lineHeight:1.6}}>
-          Privado e seguro. Apenas vós têm acesso.
+          {error && (
+            <div style={{marginTop:14,padding:'12px 14px',borderRadius:14,background:'rgba(239,68,68,0.15)',color:'#fca5a5',fontSize:13}}>
+              {error}
+            </div>
+          )}
+
+          <button
+            onClick={handle} disabled={loading}
+            style={{
+              width:'100%',marginTop:24,padding:'14px',borderRadius:14,
+              background:'linear-gradient(135deg,#C9A96E,#D4B87E)',
+              border:'none',color:'#0C1525',fontSize:15,fontWeight:700,
+              cursor:'pointer',fontFamily:'inherit',
+              boxShadow:'0 8px 24px rgba(201,169,110,0.25)',
+              opacity:loading?0.7:1,transition:'all 0.2s'
+            }}
+          >
+            {loading ? 'A processar...' : (mode==='login' ? 'Entrar' : 'Criar Conta')}
+          </button>
+
+          <div style={{display:'flex',alignItems:'center',gap:12,margin:'20px 0 0'}}>
+            <div style={{flex:1,height:1,background:'linear-gradient(90deg,transparent,rgba(201,169,110,0.2))'}}/>
+            <p style={{fontSize:11,color:'rgba(255,255,255,0.25)',margin:0}}>Privado e seguro</p>
+            <div style={{flex:1,height:1,background:'linear-gradient(90deg,rgba(201,169,110,0.2),transparent)'}}/>
+          </div>
         </div>
       </div>
     </div>
