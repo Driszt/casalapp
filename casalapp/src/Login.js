@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { supabase } from './supabase';
 
 export default function Login({ onLogin }) {
-  const [email,setEmail]       = useState('');
-  const [password,setPassword] = useState('');
-  const [loading,setLoading]   = useState(false);
-  const [error,setError]       = useState('');
-  const [mode,setMode]         = useState('login');
+  const [email, setEmail]     = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
+  const [mode, setMode]       = useState('login');
 
   const handle = async () => {
     if (!email || !password) { setError('Preenche email e password.'); return; }
@@ -41,12 +41,10 @@ export default function Login({ onLogin }) {
         fontFamily: "'Plus Jakarta Sans',system-ui,sans-serif", outline: 'none'
       }}
     >
-      {/* Ambient blobs */}
       <div style={{position:'absolute',top:'20%',left:'-5%',width:300,height:300,borderRadius:'50%',background:'radial-gradient(circle,rgba(201,169,110,0.12),transparent)',filter:'blur(70px)',pointerEvents:'none'}}/>
       <div style={{position:'absolute',bottom:'25%',right:'-5%',width:320,height:320,borderRadius:'50%',background:'radial-gradient(circle,rgba(201,169,110,0.08),transparent)',filter:'blur(80px)',pointerEvents:'none'}}/>
 
       <div style={{width:'100%',maxWidth:380,position:'relative',zIndex:10}}>
-        {/* Logo */}
         <div style={{textAlign:'center',marginBottom:36}}>
           <div style={{
             width:72,height:72,borderRadius:24,margin:'0 auto 20px',
@@ -66,14 +64,12 @@ export default function Login({ onLogin }) {
           </p>
         </div>
 
-        {/* Card */}
         <div style={{
           borderRadius:32,padding:36,
           background:'rgba(30,42,74,0.5)',
           backdropFilter:'blur(60px)',
           border:'1px solid rgba(201,169,110,0.1)'
         }}>
-          {/* Mode tabs */}
           <div style={{display:'flex',gap:10,marginBottom:32}}>
             {[['login','Entrar'],['register','Registar']].map(([m,l])=>(
               <button key={m} onClick={()=>{setMode(m);setError('');}} style={{
@@ -85,13 +81,10 @@ export default function Login({ onLogin }) {
             ))}
           </div>
 
-          {/* Inputs */}
           <div style={{display:'flex',flexDirection:'column',gap:18}}>
             <div>
               <label style={{display:'block',fontSize:10,color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.2em',marginBottom:8,fontWeight:600}}>Email</label>
-              <input
-                type="email" value={email} onChange={e=>setEmail(e.target.value)}
-                placeholder="tu@email.com"
+              <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="tu@email.com"
                 style={{width:'100%',boxSizing:'border-box',padding:'14px 16px',borderRadius:14,background:'rgba(255,255,255,0.08)',border:'none',color:'#fff',fontSize:14,fontFamily:'inherit',outline:'none'}}
                 onFocus={e=>e.target.style.background='rgba(255,255,255,0.13)'}
                 onBlur={e=>e.target.style.background='rgba(255,255,255,0.08)'}
@@ -99,9 +92,7 @@ export default function Login({ onLogin }) {
             </div>
             <div>
               <label style={{display:'block',fontSize:10,color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.2em',marginBottom:8,fontWeight:600}}>Password</label>
-              <input
-                type="password" value={password} onChange={e=>setPassword(e.target.value)}
-                placeholder="••••••••"
+              <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••"
                 style={{width:'100%',boxSizing:'border-box',padding:'14px 16px',borderRadius:14,background:'rgba(255,255,255,0.08)',border:'none',color:'#fff',fontSize:14,fontFamily:'inherit',outline:'none'}}
                 onFocus={e=>e.target.style.background='rgba(255,255,255,0.13)'}
                 onBlur={e=>e.target.style.background='rgba(255,255,255,0.08)'}
@@ -115,18 +106,15 @@ export default function Login({ onLogin }) {
             </div>
           )}
 
-          <button
-            onClick={handle} disabled={loading}
-            style={{
-              width:'100%',marginTop:24,padding:'14px',borderRadius:14,
-              background:'linear-gradient(135deg,#C9A96E,#D4B87E)',
-              border:'none',color:'#0C1525',fontSize:15,fontWeight:700,
-              cursor:'pointer',fontFamily:'inherit',
-              boxShadow:'0 8px 24px rgba(201,169,110,0.25)',
-              opacity:loading?0.7:1,transition:'all 0.2s'
-            }}
-          >
-            {loading ? 'A processar...' : (mode==='login' ? 'Entrar' : 'Criar Conta')}
+          <button onClick={handle} disabled={loading} style={{
+            width:'100%',marginTop:24,padding:'14px',borderRadius:14,
+            background:'linear-gradient(135deg,#C9A96E,#D4B87E)',
+            border:'none',color:'#0C1525',fontSize:15,fontWeight:700,
+            cursor:'pointer',fontFamily:'inherit',
+            boxShadow:'0 8px 24px rgba(201,169,110,0.25)',
+            opacity:loading?0.7:1,transition:'all 0.2s'
+          }}>
+            {loading ? 'A processar...' : (mode === 'login' ? 'Entrar' : 'Criar Conta')}
           </button>
 
           <div style={{display:'flex',alignItems:'center',gap:12,margin:'20px 0 0'}}>
