@@ -1971,12 +1971,10 @@ export default function App({ user, onLogout }) {
         }
 
         // Load ALL members for ALL my groups and update group state
-        dbg('A carregar membros...');
         const { data: allMembers } = await supabase.from('user_groups')
           .select('user_id,group_id,group_name,group_emoji,group_color,group_type,group_admins,group_perms')
           .in('group_id', myGroupIds.length ? myGroupIds : ['__none__']);
 
-        dbg('Membros encontrados: '+(allMembers?.length||0));
         if(allMembers?.length){
           // Build a map: groupId -> [user_id, user_id, ...]
           const memberMap = {};
@@ -2010,7 +2008,6 @@ export default function App({ user, onLogout }) {
         }
 
       } catch(e){ console.error('Supabase sync failed:', e); }
-      dbg('Sync completo. Grupos: '+groups.length);
       setDbReady(true);
     };
     sync();
@@ -2266,8 +2263,6 @@ export default function App({ user, onLogout }) {
   const handleLogout   = async ()=>{ await supabase.auth.signOut(); onLogout(); };
 
   // ── DEBUG STATE ──────────────────────────────────────────────────────────
-  const [debugLog,setDebugLog] = useState([]);
-  const dbg = (msg) => {
     console.log('[CasalApp]', msg);
     setDebugLog(prev=>[...prev.slice(-8), new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' '+msg]);
   };
@@ -2463,15 +2458,7 @@ export default function App({ user, onLogout }) {
 
       {/* MODALS */}
       {/* DEBUG PANEL - remover depois */}
-      {debugLog.length>0&&(
-        <div style={{position:'fixed',bottom:16,left:16,background:'rgba(0,0,0,0.85)',borderRadius:10,padding:'10px 14px',zIndex:9998,maxWidth:320,fontFamily:'monospace'}}>
-          <div style={{fontSize:10,color:'#5a8a5a',marginBottom:4,display:'flex',justifyContent:'space-between'}}>
-            <span>🔧 Debug</span>
-            <button onClick={()=>setDebugLog([])} style={{background:'none',border:'none',color:'#888',cursor:'pointer',fontSize:12}}>×</button>
-          </div>
-          {debugLog.map((l,i)=><div key={i} style={{fontSize:10,color:l.includes('ERRO')?'#e05050':'#a0c080',lineHeight:1.5}}>{l}</div>)}
-        </div>
-      )}
+      
       {onboarding&&<OnboardingModal T={T} onClose={()=>{setOnboard(false);}}/>}
       {searchOpen&&<SearchModal events={events[g]||[]} tasks={tasks[g]||[]} msgs={msgs[g]||[]} notes={notes[g]||[]} onClose={()=>setSearch(false)} onNav={id=>{setTab(id);setSearch(false);}}/>}
       {shortcutsModal&&<ShortcutsModal shortcuts={shortcuts} onSave={sh=>{setShortcuts(sh);setSM(false);}} onClose={()=>setSM(false)}/>}
